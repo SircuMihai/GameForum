@@ -1,0 +1,9 @@
+services:
+  ForumDataBase:
+    image: 'postgres:latest'
+    environment:
+      - 'POSTGRES_DB=ForumDataBase'
+      - 'POSTGRES_PASSWORD=mnbvc'
+      - 'POSTGRES_USER=admin'
+    ports:
+      - '6000:5432'
