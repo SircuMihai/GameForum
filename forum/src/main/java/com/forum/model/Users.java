@@ -56,5 +56,5 @@ public class Users {
     private List<Messages> messages =  new ArrayList<>();
 
     @OneToMany(mappedBy = "users", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Achievements_Users> achievementsUsers = new ArrayList<>();
+    private List<AchievementsUsers> achievementsUsers = new ArrayList<>();
 }

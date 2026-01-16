@@ -30,5 +30,5 @@ public class Achievements {
     private String achievementXPValue;
 
     @OneToMany(mappedBy = "achievements", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Achievements_Users> achievementsUsers = new ArrayList<>();
+    private List<AchievementsUsers> achievementsUsers = new ArrayList<>();
 }
