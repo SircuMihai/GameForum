@@ -1,7 +1,8 @@
 package com.forum.controller;
 
 import com.forum.service.SubjectService;
-import com.forum.model.Subjects;
+import com.forum.dto.request.SubjectRequest;
+import com.forum.dto.response.SubjectResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,27 +18,28 @@ public class SubjectController {
     private SubjectService subjectService;
 
     @GetMapping
-    public List<Subjects> getAll() {
+    public List<SubjectResponse> getAll() {
         return subjectService.findAll();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Subjects> getById(@PathVariable Integer id) {
+    public ResponseEntity<SubjectResponse> getById(@PathVariable Integer id) {
         return subjectService.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<Subjects> create(@RequestBody Subjects subject) {
-        Subjects created = subjectService.create(subject);
+    public ResponseEntity<SubjectResponse> create(@RequestBody SubjectRequest request) {
+        SubjectResponse created = subjectService.create(request);
         return ResponseEntity.created(URI.create("/api/subject/" + created.getSubjectId())).body(created);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Subjects> update(@PathVariable Integer id, @RequestBody Subjects subject) {
-        if (subjectService.findById(id).isEmpty()) return ResponseEntity.notFound().build();
-        return ResponseEntity.ok(subjectService.update(id, subject));
+    public ResponseEntity<SubjectResponse> update(@PathVariable Integer id, @RequestBody SubjectRequest request) {
+        return subjectService.update(id, request)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")

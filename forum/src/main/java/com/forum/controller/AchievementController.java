@@ -1,7 +1,8 @@
 package com.forum.controller;
 
 import com.forum.service.AchievementService;
-import com.forum.model.Achievements;
+import com.forum.dto.request.AchievementRequest;
+import com.forum.dto.response.AchievementResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,27 +18,28 @@ public class AchievementController {
     private AchievementService achievementService;
 
     @GetMapping
-    public List<Achievements> getAll() {
+    public List<AchievementResponse> getAll() {
         return achievementService.findAll();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Achievements> getById(@PathVariable Integer id) {
+    public ResponseEntity<AchievementResponse> getById(@PathVariable Integer id) {
         return achievementService.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<Achievements> create(@RequestBody Achievements achievement) {
-        Achievements created = achievementService.create(achievement);
+    public ResponseEntity<AchievementResponse> create(@RequestBody AchievementRequest request) {
+        AchievementResponse created = achievementService.create(request);
         return ResponseEntity.created(URI.create("/api/achievement/" + created.getAchievementId())).body(created);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Achievements> update(@PathVariable Integer id, @RequestBody Achievements achievement) {
-        if (achievementService.findById(id).isEmpty()) return ResponseEntity.notFound().build();
-        return ResponseEntity.ok(achievementService.update(id, achievement));
+    public ResponseEntity<AchievementResponse> update(@PathVariable Integer id, @RequestBody AchievementRequest request) {
+        return achievementService.update(id, request)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")

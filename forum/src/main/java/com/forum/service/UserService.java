@@ -1,5 +1,8 @@
 package com.forum.service;
 
+import com.forum.dto.mapper.UserMapper;
+import com.forum.dto.request.UserRequest;
+import com.forum.dto.response.UserResponse;
 import com.forum.repository.UserRepository;
 import com.forum.model.Users;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -14,21 +18,32 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-    public List<Users> findAll() {
-        return userRepository.findAll();
+    @Autowired
+    private UserMapper userMapper;
+
+    public List<UserResponse> findAll() {
+        return userRepository.findAll().stream()
+                .map(userMapper::toResponse)
+                .collect(Collectors.toList());
     }
 
-    public Optional<Users> findById(Integer id) {
-        return userRepository.findById(id);
+    public Optional<UserResponse> findById(Integer id) {
+        return userRepository.findById(id).map(userMapper::toResponse);
     }
 
-    public Users create(Users user) {
-        return userRepository.save(user);
+    public UserResponse create(UserRequest request) {
+        Users entity = userMapper.toEntity(request);
+        Users saved = userRepository.save(entity);
+        return userMapper.toResponse(saved);
     }
 
-    public Users update(Integer id, Users user) {
-        user.setUserId(id);
-        return userRepository.save(user);
+    public Optional<UserResponse> update(Integer id, UserRequest request) {
+        return userRepository.findById(id).map(existing -> {
+            Users toUpdate = userMapper.toEntity(request);
+            toUpdate.setUserId(id);
+            Users saved = userRepository.save(toUpdate);
+            return userMapper.toResponse(saved);
+        });
     }
 
     public void delete(Integer id) {

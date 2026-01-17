@@ -1,7 +1,8 @@
 package com.forum.controller;
 
 import com.forum.service.UserService;
-import com.forum.model.Users;
+import com.forum.dto.request.UserRequest;
+import com.forum.dto.response.UserResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,27 +17,28 @@ public class UserController {
     private UserService userService;
 
     @GetMapping
-    public List<Users> getAll() {
+    public List<UserResponse> getAll() {
         return userService.findAll();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Users> getById(@PathVariable Integer id) {
+    public ResponseEntity<UserResponse> getById(@PathVariable Integer id) {
         return userService.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<Users> create(@RequestBody Users user) {
-        Users created = userService.create(user);
+    public ResponseEntity<UserResponse> create(@RequestBody UserRequest request) {
+        UserResponse created = userService.create(request);
         return ResponseEntity.created(URI.create("/api/user/" + created.getUserId())).body(created);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Users> update(@PathVariable Integer id, @RequestBody Users user) {
-        if (userService.findById(id).isEmpty()) return ResponseEntity.notFound().build();
-        return ResponseEntity.ok(userService.update(id, user));
+    public ResponseEntity<UserResponse> update(@PathVariable Integer id, @RequestBody UserRequest request) {
+        return userService.update(id, request)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")

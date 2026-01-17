@@ -1,7 +1,8 @@
 package com.forum.controller;
 
 import com.forum.service.AchievementsUsersService;
-import com.forum.model.AchievementsUsers;
+import com.forum.dto.request.AchievementsUsersRequest;
+import com.forum.dto.response.AchievementsUsersResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,27 +18,28 @@ public class AchievementsUsersController {
     private AchievementsUsersService achievementsUsersService;
 
     @GetMapping
-    public List<AchievementsUsers> getAll() {
+    public List<AchievementsUsersResponse> getAll() {
         return achievementsUsersService.findAll();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<AchievementsUsers> getById(@PathVariable Integer id) {
+    public ResponseEntity<AchievementsUsersResponse> getById(@PathVariable Integer id) {
         return achievementsUsersService.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<AchievementsUsers> create(@RequestBody AchievementsUsers au) {
-        AchievementsUsers created = achievementsUsersService.create(au);
-        return ResponseEntity.created(URI.create("/api/achievementsusers/" + created.getMessageId())).body(created);
+    public ResponseEntity<AchievementsUsersResponse> create(@RequestBody AchievementsUsersRequest request) {
+        AchievementsUsersResponse created = achievementsUsersService.create(request);
+        return ResponseEntity.created(URI.create("/api/achievementsusers/" + created.getAchievementsUsersId())).body(created);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<AchievementsUsers> update(@PathVariable Integer id, @RequestBody AchievementsUsers au) {
-        if (achievementsUsersService.findById(id).isEmpty()) return ResponseEntity.notFound().build();
-        return ResponseEntity.ok(achievementsUsersService.update(id, au));
+    public ResponseEntity<AchievementsUsersResponse> update(@PathVariable Integer id, @RequestBody AchievementsUsersRequest request) {
+        return achievementsUsersService.update(id, request)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
