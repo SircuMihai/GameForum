@@ -1,5 +1,7 @@
 package com.forum.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,7 +19,8 @@ public class Achievements {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "achievement_id")
-    private int achievementId;
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private Integer achievementId;
 
     @Column(name = "achievement_name", nullable = false, unique = true)
     private String achievementName;
@@ -29,6 +32,7 @@ public class Achievements {
     @Column(name = "achievement_xp_value", nullable = false)
     private String achievementXPValue;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "achievements", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AchievementsUsers> achievementsUsers = new ArrayList<>();
 }

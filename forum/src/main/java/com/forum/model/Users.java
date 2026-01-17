@@ -1,6 +1,7 @@
 package com.forum.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,7 +19,8 @@ public class Users {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
-    private int userId;
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private Integer userId;
 
     @Column(name = "nickname", nullable = false, unique = true)
     private String nickname;
@@ -49,12 +51,15 @@ public class Users {
     @Column(name = "created_at")
     private String createdAt;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Subjects> subjects =  new ArrayList<>();
 
+    @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Messages> messages =  new ArrayList<>();
 
-    @OneToMany(mappedBy = "users", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    @OneToMany(mappedBy = "users", cascade = CascadeType.DETACH, orphanRemoval = true)
     private List<AchievementsUsers> achievementsUsers = new ArrayList<>();
 }

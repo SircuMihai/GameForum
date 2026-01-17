@@ -1,5 +1,6 @@
 package com.forum.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,7 +15,8 @@ public class Messages {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "message_id")
-    private int messageId;
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private Integer messageId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "subject_id",  referencedColumnName = "subject_id")
