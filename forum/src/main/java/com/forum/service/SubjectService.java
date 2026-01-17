@@ -9,6 +9,7 @@ import com.forum.model.Users;
 import com.forum.repository.CategoryRepository;
 import com.forum.repository.SubjectRepository;
 import com.forum.repository.UserRepository;
+import com.forum.exception.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -44,11 +45,13 @@ public class SubjectService {
     public SubjectResponse create(SubjectRequest request) {
         Subjects entity = subjectMapper.toEntity(request);
         if (request.getUserId() != null) {
-            Users user = userRepository.findById(request.getUserId()).orElseThrow();
+            Users user = userRepository.findById(request.getUserId())
+                    .orElseThrow(() -> new NotFoundException("User not found: " + request.getUserId()));
             entity.setUser(user);
         }
         if (request.getCategoryId() != null) {
-            Categorys category = categoryRepository.findById(request.getCategoryId()).orElseThrow();
+            Categorys category = categoryRepository.findById(request.getCategoryId())
+                    .orElseThrow(() -> new NotFoundException("Category not found: " + request.getCategoryId()));
             entity.setCategory(category);
         }
         Subjects saved = subjectRepository.save(entity);
@@ -60,11 +63,13 @@ public class SubjectService {
             Subjects toUpdate = subjectMapper.toEntity(request);
             toUpdate.setSubjectId(id);
             if (request.getUserId() != null) {
-                Users user = userRepository.findById(request.getUserId()).orElseThrow();
+                Users user = userRepository.findById(request.getUserId())
+                        .orElseThrow(() -> new NotFoundException("User not found: " + request.getUserId()));
                 toUpdate.setUser(user);
             }
             if (request.getCategoryId() != null) {
-                Categorys category = categoryRepository.findById(request.getCategoryId()).orElseThrow();
+                Categorys category = categoryRepository.findById(request.getCategoryId())
+                        .orElseThrow(() -> new NotFoundException("Category not found: " + request.getCategoryId()));
                 toUpdate.setCategory(category);
             }
             Subjects saved = subjectRepository.save(toUpdate);

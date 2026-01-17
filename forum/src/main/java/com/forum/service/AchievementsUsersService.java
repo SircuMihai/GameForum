@@ -9,6 +9,7 @@ import com.forum.model.Users;
 import com.forum.repository.AchievementsRepository;
 import com.forum.repository.AchievementsUsersRepository;
 import com.forum.repository.UserRepository;
+import com.forum.exception.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -43,11 +44,13 @@ public class AchievementsUsersService {
     public AchievementsUsersResponse create(AchievementsUsersRequest request) {
         AchievementsUsers entity = achievementsUsersMapper.toEntity(request);
         if (request.getAchievementId() != null) {
-            Achievements ach = achievementsRepository.findById(request.getAchievementId()).orElseThrow();
+            Achievements ach = achievementsRepository.findById(request.getAchievementId())
+                    .orElseThrow(() -> new NotFoundException("Achievement not found: " + request.getAchievementId()));
             entity.setAchievements(ach);
         }
         if (request.getUserId() != null) {
-            Users user = userRepository.findById(request.getUserId()).orElseThrow();
+            Users user = userRepository.findById(request.getUserId())
+                    .orElseThrow(() -> new NotFoundException("User not found: " + request.getUserId()));
             entity.setUsers(user);
         }
         AchievementsUsers saved = achievementsUsersRepository.save(entity);
@@ -59,11 +62,13 @@ public class AchievementsUsersService {
             AchievementsUsers toUpdate = achievementsUsersMapper.toEntity(request);
             toUpdate.setMessageId(id);
             if (request.getAchievementId() != null) {
-                Achievements ach = achievementsRepository.findById(request.getAchievementId()).orElseThrow();
+                Achievements ach = achievementsRepository.findById(request.getAchievementId())
+                        .orElseThrow(() -> new NotFoundException("Achievement not found: " + request.getAchievementId()));
                 toUpdate.setAchievements(ach);
             }
             if (request.getUserId() != null) {
-                Users user = userRepository.findById(request.getUserId()).orElseThrow();
+                Users user = userRepository.findById(request.getUserId())
+                        .orElseThrow(() -> new NotFoundException("User not found: " + request.getUserId()));
                 toUpdate.setUsers(user);
             }
             AchievementsUsers saved = achievementsUsersRepository.save(toUpdate);

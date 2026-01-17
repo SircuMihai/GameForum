@@ -9,6 +9,7 @@ import com.forum.model.Users;
 import com.forum.repository.MessageRepository;
 import com.forum.repository.SubjectRepository;
 import com.forum.repository.UserRepository;
+import com.forum.exception.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -44,11 +45,13 @@ public class MessageService {
     public MessageResponse create(MessageRequest request) {
         Messages entity = messageMapper.toEntity(request);
         if (request.getSubjectId() != null) {
-            Subjects subject = subjectRepository.findById(request.getSubjectId()).orElseThrow();
+            Subjects subject = subjectRepository.findById(request.getSubjectId())
+                    .orElseThrow(() -> new NotFoundException("Subject not found: " + request.getSubjectId()));
             entity.setSubject(subject);
         }
         if (request.getUserId() != null) {
-            Users user = userRepository.findById(request.getUserId()).orElseThrow();
+            Users user = userRepository.findById(request.getUserId())
+                    .orElseThrow(() -> new NotFoundException("User not found: " + request.getUserId()));
             entity.setUser(user);
         }
         Messages saved = messageRepository.save(entity);
@@ -60,11 +63,13 @@ public class MessageService {
             Messages toUpdate = messageMapper.toEntity(request);
             toUpdate.setMessageId(id);
             if (request.getSubjectId() != null) {
-                Subjects subject = subjectRepository.findById(request.getSubjectId()).orElseThrow();
+                Subjects subject = subjectRepository.findById(request.getSubjectId())
+                        .orElseThrow(() -> new NotFoundException("Subject not found: " + request.getSubjectId()));
                 toUpdate.setSubject(subject);
             }
             if (request.getUserId() != null) {
-                Users user = userRepository.findById(request.getUserId()).orElseThrow();
+                Users user = userRepository.findById(request.getUserId())
+                        .orElseThrow(() -> new NotFoundException("User not found: " + request.getUserId()));
                 toUpdate.setUser(user);
             }
             Messages saved = messageRepository.save(toUpdate);
