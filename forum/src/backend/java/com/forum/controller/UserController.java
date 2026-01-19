@@ -3,6 +3,8 @@ package com.forum.controller;
 import com.forum.service.UserService;
 import com.forum.dto.request.UserRequest;
 import com.forum.dto.response.UserResponse;
+import com.forum.dto.request.LoginRequest;
+import com.forum.dto.response.LoginResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

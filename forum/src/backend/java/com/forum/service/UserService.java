@@ -8,6 +8,7 @@ import com.forum.model.Users;
 import com.forum.exception.ConflictException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,6 +22,9 @@ public class UserService {
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     public List<UserResponse> findAll() {
         return userRepository.findAll().stream()
@@ -40,6 +44,9 @@ public class UserService {
             throw new ConflictException("Nickname already in use: " + request.getNickname());
         }
         Users entity = userMapper.toEntity(request);
+        if (request.getPassword() != null) {
+            entity.setPassword(passwordEncoder.encode(request.getPassword()));
+        }
         Users saved = userRepository.save(entity);
         return userMapper.toResponse(saved);
     }
@@ -58,6 +65,11 @@ public class UserService {
             }
             Users toUpdate = userMapper.toEntity(request);
             toUpdate.setUserId(id);
+            if (request.getPassword() != null) {
+                toUpdate.setPassword(passwordEncoder.encode(request.getPassword()));
+            } else {
+                toUpdate.setPassword(existing.getPassword());
+            }
             Users saved = userRepository.save(toUpdate);
             return userMapper.toResponse(saved);
         });
@@ -65,5 +77,11 @@ public class UserService {
 
     public void delete(Integer id) {
         userRepository.deleteById(id);
+    }
+
+    public boolean authenticate(String email, String rawPassword) {
+        return userRepository.findByUserEmail(email)
+                .map(u -> passwordEncoder.matches(rawPassword, u.getPassword()))
+                .orElse(false);
     }
 }
