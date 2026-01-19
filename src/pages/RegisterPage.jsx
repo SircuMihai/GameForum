@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AuthLayout from "../components/AuthLayout";
 import AoeLogo from "../components/AoELogo";
 import FrameCard from "../components/FrameCard";
@@ -12,14 +12,49 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const handleRegister = () => {
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    if (loading) return;
+
+    setError("");
     if (password !== confirmPassword) {
-      alert("Passwords do not match!");
+      setError("Passwords do not match");
       return;
     }
-    console.log("Register:", { username, email, password });
-    alert("Registration clicked! Username: " + username);
+
+    setLoading(true);
+    try {
+      const payload = {
+        nickname: username,
+        userEmail: email,
+        password,
+        role: "USER",
+        userLevel: 1,
+        userXP: 0,
+      };
+
+      const resp = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!resp.ok) {
+        const data = await resp.json().catch(() => ({}));
+        setError(data?.message || "Registration failed");
+        return;
+      }
+
+      navigate("/login", { replace: true });
+    } catch {
+      setError("Network error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -33,7 +68,13 @@ export default function RegisterPage() {
 
         <Divider text="Or register manually" />
 
-        <div className="space-y-4">
+        {error && (
+          <div className="mt-4 mb-2 rounded border border-red-700/40 bg-red-900/20 px-3 py-2 text-sm text-red-200">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleRegister} className="space-y-4">
           <div>
             <label
               className="block text-amber-300 text-sm font-semibold mb-2 uppercase tracking-wide"
@@ -57,6 +98,7 @@ export default function RegisterPage() {
               </svg>
               <input
                 type="text"
+                required
                 className="w-full pl-11 pr-4 py-3 bg-stone-800/50 border-2 border-amber-900/50 rounded text-white placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:border-amber-600 transition-all"
                 placeholder="Enter your name"
                 value={username}
@@ -88,6 +130,7 @@ export default function RegisterPage() {
               </svg>
               <input
                 type="email"
+                required
                 className="w-full pl-11 pr-4 py-3 bg-stone-800/50 border-2 border-amber-900/50 rounded text-white placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:border-amber-600 transition-all"
                 placeholder="commander@empire.com"
                 value={email}
@@ -111,6 +154,7 @@ export default function RegisterPage() {
           <div className="flex items-start">
             <input
               type="checkbox"
+              required
               className="mt-1 mr-3 rounded border-amber-700 bg-stone-800 accent-amber-600"
             />
             <label className="text-stone-300 text-xs">
@@ -126,13 +170,14 @@ export default function RegisterPage() {
           </div>
 
           <button
-            onClick={handleRegister}
-            className="w-full bg-linear-to-r from-amber-700 via-amber-600 to-amber-700 hover:from-amber-600 hover:via-amber-500 hover:to-amber-600 text-white font-bold py-3 px-4 rounded border-2 border-amber-500 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-[1.02] uppercase tracking-wider"
+            type="submit"
+            disabled={loading}
+            className="w-full bg-linear-to-r from-amber-700 via-amber-600 to-amber-700 hover:from-amber-600 hover:via-amber-500 hover:to-amber-600 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded border-2 border-amber-500 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-[1.02] uppercase tracking-wider"
             style={{ fontFamily: "Georgia, serif" }}
           >
-            Establish Empire
+            {loading ? "Establishing..." : "Establish Empire"}
           </button>
-        </div>
+        </form>
 
         <div className="mt-6 text-center">
           <p className="text-stone-400 text-sm">
@@ -140,7 +185,7 @@ export default function RegisterPage() {
               Already have an account?
             </span>
             <Link
-              to="/"
+              to="/login"
               className="text-amber-400 hover:text-amber-300 font-bold transition-colors uppercase tracking-wide ml-1"
             >
               Log in

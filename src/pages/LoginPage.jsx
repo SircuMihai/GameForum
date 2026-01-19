@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AuthLayout from "../components/AuthLayout";
 import AoeLogo from "../components/AoELogo";
 import FrameCard from "../components/FrameCard";
@@ -10,10 +10,39 @@ import PasswordInput from "../components/PasswordInput";
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const handleLogin = () => {
-    console.log("Login:", { email, password });
-    alert("Login clicked! Email: " + email);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (loading) return;
+
+    setError("");
+    setLoading(true);
+
+    try {
+      const resp = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include", // daca backend foloseste cookie/session
+        body: JSON.stringify({ userEmail: email, password }),
+      });
+
+      const data = await resp.json().catch(() => ({}));
+
+      if (!resp.ok || data?.authenticated === false) {
+        setError(data?.message || "Invalid credentials");
+        return;
+      }
+
+
+      navigate("/", { replace: true });
+    } catch {
+      setError("Network error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -27,7 +56,13 @@ export default function LoginPage() {
 
         <Divider text="Or use your credentials" />
 
-        <div className="space-y-5">
+        {error && (
+          <div className="mt-4 mb-2 rounded border border-red-700/40 bg-red-900/20 px-3 py-2 text-sm text-red-200">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label
               className="block text-amber-300 text-sm font-semibold mb-2 uppercase tracking-wide"
@@ -51,6 +86,7 @@ export default function LoginPage() {
               </svg>
               <input
                 type="email"
+                required
                 className="w-full pl-11 pr-4 py-3 bg-stone-800/50 border-2 border-amber-900/50 rounded text-white placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:border-amber-600 transition-all"
                 placeholder="commander@empire.com"
                 value={email}
@@ -71,9 +107,7 @@ export default function LoginPage() {
                 type="checkbox"
                 className="mr-2 rounded border-amber-700 bg-stone-800 accent-amber-600"
               />
-              <span className="text-xs uppercase tracking-wide">
-                Remember me
-              </span>
+              <span className="text-xs uppercase tracking-wide">Remember me</span>
             </label>
 
             <Link
@@ -85,13 +119,14 @@ export default function LoginPage() {
           </div>
 
           <button
-            onClick={handleLogin}
-            className="w-full bg-linear-to-r from-amber-700 via-amber-600 to-amber-700 hover:from-amber-600 hover:via-amber-500 hover:to-amber-600 text-white font-bold py-3 px-4 rounded border-2 border-amber-500 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-[1.02] uppercase tracking-wider"
+            type="submit"
+            disabled={loading}
+            className="w-full bg-linear-to-r from-amber-700 via-amber-600 to-amber-700 hover:from-amber-600 hover:via-amber-500 hover:to-amber-600 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded border-2 border-amber-500 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-[1.02] uppercase tracking-wider"
             style={{ fontFamily: "Georgia, serif" }}
           >
-            Enter the Empire
+            {loading ? "Entering..." : "Enter the Empire"}
           </button>
-        </div>
+        </form>
 
         <div className="mt-6 text-center">
           <p className="text-stone-400 text-sm">

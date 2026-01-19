@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+@theme {
+  /* GOLD */
+  --color-gold-100: #fff5cc;
+  --color-gold-300: #ffeebb;
+  --color-gold-400: #ffd700;
+  --color-gold-500: #d4af37;
+  --color-gold-600: #b8860b;
+  --color-gold-700: #8b6914;
+
+  /* WOOD */
+  --color-wood-900: #1a0f0a;
+  --color-wood-800: #2d1810;
+  --color-wood-700: #4a2c1a;
+  --color-wood-600: #5c3a22;
+  --color-wood-500: #8b5a36;
+
+  /* PARCHMENT */
+  --color-parchment-100: #f9f5ea;
+  --color-parchment-200: #f4e8d0;
+  --color-parchment-300: #e8dcc0;
+  --color-parchment-400: #d4c4a0;
+  --color-parchment-500: #b0a080;
+
+  /* BRONZE */
+  --color-bronze-400: #cd7f32;
+  --color-bronze-500: #b87333;
+  --color-bronze-600: #a67c00;
+
+  /* SILVER */
+  --color-silver-400: #e0e0e0;
+  --color-silver-500: #c0c0c0;
+  --color-silver-600: #a9a9a9;
+
+  /* FONTS */
+  --font-display: "Cinzel", serif;
+  --font-serif: "IM Fell English", serif;
+
+  /* SHADOWS */
+  --shadow-glow-gold: 0 0 15px rgba(212,175,55,.3);
+  --shadow-glow-bronze: 0 0 10px rgba(184,115,51,.3);
+  --shadow-inner-wood: inset 0 0 20px rgba(0,0,0,.8);
+}
+
+/* Global */
+body {
+  background-color: #1a0f0a;
+  color: var(--color-parchment-200);
+  font-family: var(--font-serif);
+}
+
+:root {
+  --color-wood-dark: #2d1810;
+  --color-gold: #d4af37;
+}
+
+body {
+  background-color: #1a0f0a;
+  color: #2d1810;
+  font-family: 'IM Fell English', serif;
+  -webkit-font-smoothing: antialiased;
+  background-image: url('https://cdn.magicpatterns.com/uploads/nqwtAMDkoHEAhDJ5qQpqJn/aoe-3.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  background-blend-mode: overlay;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 12px; }
+::-webkit-scrollbar-track { background: #2d1810; border-left: 1px solid #4a2c1a; }
+::-webkit-scrollbar-thumb { background: #8b5a36; border: 1px solid #d4af37; border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: #a67c00; }
+
+/* Text Selection */
+::selection { background: #d4af37; color: #2d1810; }
+
+.text-shadow-gold {
+  text-shadow: 1px 1px 2px rgba(0,0,0,.8), 0 0 5px rgba(212,175,55,.5);
+}
+.text-shadow-black {
+  text-shadow: 2px 2px 4px rgba(0,0,0,.9);
+}
+
+.border-image-gold {
+  border: 2px solid transparent;
+  border-image: linear-gradient(to right, transparent, #d4af37, transparent);
+  border-image-slice: 1;
+}
