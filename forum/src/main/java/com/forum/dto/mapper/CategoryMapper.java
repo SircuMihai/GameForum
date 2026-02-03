@@ -13,5 +13,7 @@ public interface CategoryMapper {
     @Mapping(target = "subjects", ignore = true)
     Categorys toEntity(CategoryRequest request);
 
+    @Mapping(target = "topicCount", ignore = true)
+    @Mapping(target = "postCount", ignore = true)
     CategoryResponse toResponse(Categorys entity);
 }

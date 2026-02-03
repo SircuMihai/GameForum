@@ -22,6 +22,11 @@ public class MessageController {
         return messageService.findAll();
     }
 
+    @GetMapping(params = "subjectId")
+    public List<MessageResponse> getAllBySubjectId(@RequestParam Integer subjectId) {
+        return messageService.findBySubjectId(subjectId);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<MessageResponse> getById(@PathVariable Integer id) {
         return messageService.findById(id)

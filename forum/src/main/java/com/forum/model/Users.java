@@ -33,17 +33,15 @@ public class Users {
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
-    @Column(name = "user_level", nullable = false)
-    private String userLevel;
-
-    @Column(name = "user_xp", nullable = false)
-    private String userXP;
-
     @Column(name = "user_email", nullable = false, unique = true)
     private String userEmail;
 
     @Column(name = "role", nullable = false)
     private String role;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "selected_title_achievement_id", referencedColumnName = "achievement_id")
+    private Achievements selectedTitleAchievement;
 
     @Column(name = "last_login")
     private String lastLogin;

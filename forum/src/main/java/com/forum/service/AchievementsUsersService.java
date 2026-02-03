@@ -60,7 +60,7 @@ public class AchievementsUsersService {
     public Optional<AchievementsUsersResponse> update(Integer id, AchievementsUsersRequest request) {
         return achievementsUsersRepository.findById(id).map(existing -> {
             AchievementsUsers toUpdate = achievementsUsersMapper.toEntity(request);
-            toUpdate.setMessageId(id);
+            toUpdate.setAchievementsUsersId(id);
             if (request.getAchievementId() != null) {
                 Achievements ach = achievementsRepository.findById(request.getAchievementId())
                         .orElseThrow(() -> new NotFoundException("Achievement not found: " + request.getAchievementId()));

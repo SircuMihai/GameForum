@@ -25,6 +25,12 @@ public class Categorys {
     @Column(name = "category_name", nullable = false, unique = true)
     private String categoryName;
 
+    @Column(name = "category_description")
+    private String categoryDescription;
+
+    @Column(name = "category_icon_name")
+    private String categoryIconName;
+
     @Lob
     @Column(name = "category_photo")
     private String categoryPhoto;

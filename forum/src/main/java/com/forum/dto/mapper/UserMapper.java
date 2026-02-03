@@ -15,5 +15,7 @@ public interface UserMapper {
     @Mapping(target = "achievementsUsers", ignore = true)
     Users toEntity(UserRequest request);
 
+    @Mapping(target = "selectedTitleAchievementId", source = "selectedTitleAchievement.achievementId")
+    @Mapping(target = "selectedTitleName", source = "selectedTitleAchievement.achievementName")
     UserResponse toResponse(Users entity);
 }

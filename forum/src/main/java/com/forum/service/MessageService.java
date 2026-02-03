@@ -38,6 +38,12 @@ public class MessageService {
                 .collect(Collectors.toList());
     }
 
+    public List<MessageResponse> findBySubjectId(Integer subjectId) {
+        return messageRepository.findBySubject_SubjectId(subjectId).stream()
+                .map(messageMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
     public Optional<MessageResponse> findById(Integer id) {
         return messageRepository.findById(id).map(messageMapper::toResponse);
     }

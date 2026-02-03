@@ -11,10 +11,10 @@ public class UserResponse {
     private Integer userId;
     private String nickname;
     private String avatar;
-    private String userLevel;
-    private String userXP;
     private String userEmail;
     private String role;
+    private Integer selectedTitleAchievementId;
+    private String selectedTitleName;
     private String lastLogin;
     private String createdAt;
 }

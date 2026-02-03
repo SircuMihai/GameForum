@@ -17,5 +17,9 @@ public interface SubjectMapper {
 
     @Mapping(target = "categoryId", source = "category.categoryId")
     @Mapping(target = "userId", source = "user.userId")
+    @Mapping(target = "userNickname", source = "user.nickname")
+    @Mapping(target = "userAvatar", source = "user.avatar")
+    @Mapping(target = "userRole", expression = "java(entity.getUser() != null && entity.getUser().getRole() != null ? entity.getUser().getRole().toLowerCase() : null)")
+    @Mapping(target = "replyCount", ignore = true)
     SubjectResponse toResponse(Subjects entity);
 }

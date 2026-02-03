@@ -7,7 +7,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "achievements_users")
+@Table(name = "achievements_users",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"achievement_id", "user_id"})
+        })
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
@@ -16,7 +19,7 @@ public class AchievementsUsers {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "achievements_users_id")
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private Integer messageId;
+    private Integer achievementsUsersId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "achievement_id", referencedColumnName = "achievement_id")

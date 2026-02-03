@@ -65,6 +65,10 @@ public class UserService {
             }
             Users toUpdate = userMapper.toEntity(request);
             toUpdate.setUserId(id);
+            toUpdate.setSelectedTitleAchievement(existing.getSelectedTitleAchievement());
+            toUpdate.setSubjects(existing.getSubjects());
+            toUpdate.setMessages(existing.getMessages());
+            toUpdate.setAchievementsUsers(existing.getAchievementsUsers());
             if (request.getPassword() != null) {
                 toUpdate.setPassword(passwordEncoder.encode(request.getPassword()));
             } else {

@@ -9,5 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CategoryRequest {
     private String categoryName;
+    private String categoryDescription;
+    private String categoryIconName;
     private String categoryPhoto;
 }

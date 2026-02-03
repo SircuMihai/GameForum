@@ -27,7 +27,7 @@ public class Messages {
     private Users user;
 
     @Column(name = "message_text", nullable = false)
-    private int messageText;
+    private String messageText;
 
     @Lob
     @Column(name = "message_photo")

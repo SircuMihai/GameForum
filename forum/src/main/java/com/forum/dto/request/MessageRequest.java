@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MessageRequest {
-    private int messageText;
+    private String messageText;
     private String messagesPhoto;
     private String messageLikes;
     private String createdAt;

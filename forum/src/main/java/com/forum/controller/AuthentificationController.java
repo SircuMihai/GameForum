@@ -4,6 +4,7 @@ import com.forum.dto.request.LoginRequest;
 import com.forum.dto.request.UserRequest;
 import com.forum.dto.response.LoginResponse;
 import com.forum.dto.response.UserResponse;
+import com.forum.dto.mapper.UserMapper;
 import com.forum.repository.UserRepository;
 import com.forum.repository.UserAuthView;
 import com.forum.security.JwtTokenStore;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
@@ -42,6 +44,9 @@ public class AuthentificationController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private UserMapper userMapper;
 
     @PostMapping("/register")
     public ResponseEntity<UserResponse> register(@RequestBody UserRequest request) {
@@ -71,5 +76,17 @@ public class AuthentificationController {
         } catch (BadCredentialsException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new LoginResponse(false, null));
         }
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> me(Authentication authentication) {
+        if (authentication == null || authentication.getName() == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        return userRepository.findByUserEmail(authentication.getName())
+                .map(userMapper::toResponse)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 }

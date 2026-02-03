@@ -7,6 +7,7 @@ import com.forum.security.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -31,8 +32,7 @@ import java.util.Arrays;
 public class SecurityConfig {
 
     public static final String[] PUBLIC_ENDPOINTS = {
-            "/api/auth/**",
-            "/api/user/**"
+            "/api/auth/**"
     };
 
     @Autowired
@@ -57,6 +57,8 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.GET, "/api/category/**", "/api/subject/**", "/api/message/**", "/api/achievement/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/user/**").permitAll()
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                         .anyRequest().authenticated()
                 )

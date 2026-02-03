@@ -22,6 +22,11 @@ public class SubjectController {
         return subjectService.findAll();
     }
 
+    @GetMapping(params = "categoryId")
+    public List<SubjectResponse> getAllByCategoryId(@RequestParam Integer categoryId) {
+        return subjectService.findByCategoryId(categoryId);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<SubjectResponse> getById(@PathVariable Integer id) {
         return subjectService.findById(id)

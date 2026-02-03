@@ -7,6 +7,7 @@ import com.forum.model.Categorys;
 import com.forum.model.Subjects;
 import com.forum.model.Users;
 import com.forum.repository.CategoryRepository;
+import com.forum.repository.MessageRepository;
 import com.forum.repository.SubjectRepository;
 import com.forum.repository.UserRepository;
 import com.forum.exception.NotFoundException;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,6 +24,9 @@ public class SubjectService {
 
     @Autowired
     private SubjectRepository subjectRepository;
+
+    @Autowired
+    private MessageRepository messageRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -33,13 +38,55 @@ public class SubjectService {
     private SubjectMapper subjectMapper;
 
     public List<SubjectResponse> findAll() {
-        return subjectRepository.findAll().stream()
-                .map(subjectMapper::toResponse)
+        List<Subjects> subjects = subjectRepository.findAll();
+
+        List<Integer> subjectIds = subjects.stream()
+                .map(Subjects::getSubjectId)
+                .collect(Collectors.toList());
+
+        Map<Integer, Long> replyCounts = messageRepository.countBySubjectIds(subjectIds).stream()
+                .collect(Collectors.toMap(
+                        r -> (Integer) r[0],
+                        r -> (Long) r[1]
+                ));
+
+        return subjects.stream()
+                .map(s -> {
+                    SubjectResponse resp = subjectMapper.toResponse(s);
+                    resp.setReplyCount(replyCounts.getOrDefault(s.getSubjectId(), 0L));
+                    return resp;
+                })
+                .collect(Collectors.toList());
+    }
+
+    public List<SubjectResponse> findByCategoryId(Integer categoryId) {
+        List<Subjects> subjects = subjectRepository.findByCategory_CategoryId(categoryId);
+
+        List<Integer> subjectIds = subjects.stream()
+                .map(Subjects::getSubjectId)
+                .collect(Collectors.toList());
+
+        Map<Integer, Long> replyCounts = messageRepository.countBySubjectIds(subjectIds).stream()
+                .collect(Collectors.toMap(
+                        r -> (Integer) r[0],
+                        r -> (Long) r[1]
+                ));
+
+        return subjects.stream()
+                .map(s -> {
+                    SubjectResponse resp = subjectMapper.toResponse(s);
+                    resp.setReplyCount(replyCounts.getOrDefault(s.getSubjectId(), 0L));
+                    return resp;
+                })
                 .collect(Collectors.toList());
     }
 
     public Optional<SubjectResponse> findById(Integer id) {
-        return subjectRepository.findById(id).map(subjectMapper::toResponse);
+        return subjectRepository.findById(id).map(s -> {
+            SubjectResponse resp = subjectMapper.toResponse(s);
+            resp.setReplyCount(messageRepository.countBySubject_SubjectId(s.getSubjectId()));
+            return resp;
+        });
     }
 
     public SubjectResponse create(SubjectRequest request) {
@@ -55,7 +102,9 @@ public class SubjectService {
             entity.setCategory(category);
         }
         Subjects saved = subjectRepository.save(entity);
-        return subjectMapper.toResponse(saved);
+        SubjectResponse resp = subjectMapper.toResponse(saved);
+        resp.setReplyCount(messageRepository.countBySubject_SubjectId(saved.getSubjectId()));
+        return resp;
     }
 
     public Optional<SubjectResponse> update(Integer id, SubjectRequest request) {
@@ -73,7 +122,9 @@ public class SubjectService {
                 toUpdate.setCategory(category);
             }
             Subjects saved = subjectRepository.save(toUpdate);
-            return subjectMapper.toResponse(saved);
+            SubjectResponse resp = subjectMapper.toResponse(saved);
+            resp.setReplyCount(messageRepository.countBySubject_SubjectId(saved.getSubjectId()));
+            return resp;
         });
     }
 

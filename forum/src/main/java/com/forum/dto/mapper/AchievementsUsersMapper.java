@@ -9,12 +9,12 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface AchievementsUsersMapper {
 
-    @Mapping(target = "messageId", ignore = true)
+    @Mapping(target = "achievementsUsersId", ignore = true)
     @Mapping(target = "achievements", ignore = true)
     @Mapping(target = "users", ignore = true)
     AchievementsUsers toEntity(AchievementsUsersRequest request);
 
-    @Mapping(target = "achievementsUsersId", source = "messageId")
+    @Mapping(target = "achievementsUsersId", source = "achievementsUsersId")
     @Mapping(target = "achievementId", source = "achievements.achievementId")
     @Mapping(target = "userId", source = "users.userId")
     AchievementsUsersResponse toResponse(AchievementsUsers entity);

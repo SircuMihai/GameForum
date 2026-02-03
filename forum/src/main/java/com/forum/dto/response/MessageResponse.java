@@ -9,10 +9,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class MessageResponse {
     private Integer messageId;
-    private int messageText;
+    private String messageText;
     private String messagesPhoto;
     private String messageLikes;
     private String createdAt;
     private Integer subjectId;
     private Integer userId;
+    private String userNickname;
+    private String userAvatar;
+    private String userRole;
 }

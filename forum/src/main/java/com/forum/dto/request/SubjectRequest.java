@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class SubjectRequest {
     private String subjectName;
-    private int subjectText;
+    private String subjectText;
     private String subjectPhoto;
     private String subjectLikes;
     private String createdAt;

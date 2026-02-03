@@ -11,7 +11,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "subjects")
+@Table(name = "subjects",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"category_id", "subject_name"})
+        })
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
@@ -30,11 +33,11 @@ public class Subjects {
     @JoinColumn(name = "user_id", referencedColumnName = "user_id")
     private Users user;
 
-    @Column(name = "subject_name", nullable = false, unique = true)
+    @Column(name = "subject_name", nullable = false)
     private String subjectName;
 
     @Column(name = "subject_text", nullable = false)
-    private int subjectText;
+    private String subjectText;
 
     @Lob
     @Column(name = "subject_photo")
