@@ -31,7 +31,6 @@ public class Categorys {
     @Column(name = "category_icon_name")
     private String categoryIconName;
 
-    @Lob
     @Column(name = "category_photo")
     private String categoryPhoto;
 

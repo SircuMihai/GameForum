@@ -8,6 +8,8 @@ import { ArrowLeft, PlusCircle } from 'lucide-react'
 export function TopicsList() {
   const { id } = useParams()
 
+  const pageSize = 10
+
   const categoryId = useMemo(() => {
     const n = Number(id)
     return Number.isFinite(n) ? n : null
@@ -15,6 +17,17 @@ export function TopicsList() {
 
   const [category, setCategory] = useState(null)
   const [categoryTopics, setCategoryTopics] = useState([])
+  const [page, setPage] = useState(1)
+
+  const totalPages = useMemo(() => {
+    return Math.max(1, Math.ceil(categoryTopics.length / pageSize))
+  }, [categoryTopics.length])
+
+  const pagedTopics = useMemo(() => {
+    const safePage = Math.min(Math.max(1, page), totalPages)
+    const start = (safePage - 1) * pageSize
+    return categoryTopics.slice(start, start + pageSize)
+  }, [categoryTopics, page, totalPages])
 
   useEffect(() => {
     if (categoryId == null) return
@@ -45,10 +58,12 @@ export function TopicsList() {
           isPinned: false,
         }))
         setCategoryTopics(mappedTopics)
+        setPage(1)
       } catch {
         if (!canceled) {
           setCategory(null)
           setCategoryTopics([])
+          setPage(1)
         }
       }
     })()
@@ -57,6 +72,10 @@ export function TopicsList() {
       canceled = true
     }
   }, [categoryId])
+
+  useEffect(() => {
+    setPage((p) => Math.min(Math.max(1, p), totalPages))
+  }, [totalPages])
 
   if (!category) return <div>Category not found</div>
 
@@ -117,7 +136,7 @@ export function TopicsList() {
           </div>
 
           <div className="space-y-1">
-            {categoryTopics.map((topic, index) => (
+            {pagedTopics.map((topic, index) => (
               <TopicCard key={topic.id} topic={topic} index={index} />
             ))}
           </div>
@@ -130,21 +149,24 @@ export function TopicsList() {
         </div>
 
         {/* Pagination */}
-        <div className="flex justify-center mt-8 gap-2">
-          {[1, 2, 3].map((page) => (
-            <button
-              key={page}
-              className={`w-10 h-10 flex items-center justify-center font-display font-bold rounded-sm border 
-                ${
-                  page === 1
-                    ? 'bg-gold-600 text-wood-900 border-gold-400'
-                    : 'bg-wood-800 text-parchment-400 border-wood-600 hover:border-gold-500'
-                }`}
-            >
-              {page}
-            </button>
-          ))}
-        </div>
+        {categoryTopics.length > 0 && totalPages > 1 && (
+          <div className="flex justify-center mt-8 gap-2">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+              <button
+                key={p}
+                onClick={() => setPage(p)}
+                className={`w-10 h-10 flex items-center justify-center font-display font-bold rounded-sm border 
+                  ${
+                    p === page
+                      ? 'bg-gold-600 text-wood-900 border-gold-400'
+                      : 'bg-wood-800 text-parchment-400 border-wood-600 hover:border-gold-500'
+                  }`}
+              >
+                {p}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </ForumLayout>
   )
