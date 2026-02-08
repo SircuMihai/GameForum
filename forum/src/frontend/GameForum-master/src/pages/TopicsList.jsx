@@ -7,7 +7,6 @@ import { ArrowLeft, PlusCircle } from 'lucide-react'
 
 export function TopicsList() {
   const { id } = useParams()
-
   const pageSize = 10
 
   const categoryId = useMemo(() => {
@@ -18,6 +17,10 @@ export function TopicsList() {
   const [category, setCategory] = useState(null)
   const [categoryTopics, setCategoryTopics] = useState([])
   const [page, setPage] = useState(1)
+
+  const [editingId, setEditingId] = useState(null)
+  const [editTitle, setEditTitle] = useState('')
+  const [editSaving, setEditSaving] = useState(false)
 
   const totalPages = useMemo(() => {
     return Math.max(1, Math.ceil(categoryTopics.length / pageSize))
@@ -54,16 +57,22 @@ export function TopicsList() {
           createdAt: s.createdAt,
           replyCount: s.replyCount ?? 0,
           userNickname: s.userNickname,
+          authorName: s.authorName,
           lastActivity: s.createdAt ? new Date(s.createdAt).toLocaleString() : '-',
           isPinned: false,
         }))
+
         setCategoryTopics(mappedTopics)
         setPage(1)
+        setEditingId(null)
+        setEditTitle('')
       } catch {
         if (!canceled) {
           setCategory(null)
           setCategoryTopics([])
           setPage(1)
+          setEditingId(null)
+          setEditTitle('')
         }
       }
     })()
@@ -77,12 +86,101 @@ export function TopicsList() {
     setPage((p) => Math.min(Math.max(1, p), totalPages))
   }, [totalPages])
 
+  const handleDeleteTopic = async (topicId) => {
+    const ok = window.confirm('Ștergi topicul?')
+    if (!ok) return
+    try {
+      await apiRequest(`/api/subject/${topicId}`, { method: 'DELETE' })
+      setCategoryTopics((prev) => prev.filter((t) => t.id !== String(topicId)))
+      setEditingId((cur) => (String(cur) === String(topicId) ? null : cur))
+    } catch {
+      alert('Nu am putut șterge topicul.')
+    }
+  }
+
+  const startEdit = (topic) => {
+    setEditingId(String(topic.id))
+    setEditTitle(topic.title || '')
+  }
+
+  const cancelEdit = () => {
+    setEditingId(null)
+    setEditTitle('')
+  }
+
+  const normalizeSubject = (s) => {
+    const categoryIdVal =
+      s?.categoryId ??
+      s?.category?.categoryId ??
+      s?.category?.id ??
+      s?.category ??
+      null
+
+    const userIdVal =
+      s?.userId ??
+      s?.user?.userId ??
+      s?.user?.id ??
+      s?.user ??
+      null
+
+    return {
+      subjectId: s?.subjectId ?? s?.id ?? null,
+      subjectName: s?.subjectName ?? s?.name ?? '',
+      subjectText: s?.subjectText ?? s?.text ?? '',
+      subjectPhoto: s?.subjectPhoto ?? s?.photo ?? null,
+      subjectLikes: s?.subjectLikes ?? s?.likes ?? '0',
+      createdAt: s?.createdAt ?? s?.created_at ?? null,
+      categoryId: categoryIdVal != null ? Number(categoryIdVal) : null,
+      userId: userIdVal != null ? Number(userIdVal) : null,
+    }
+  }
+
+  const saveEdit = async (topicId) => {
+    const newTitle = (editTitle || '').trim()
+    if (!newTitle) {
+      alert('Titlul nu poate fi gol.')
+      return
+    }
+
+    setEditSaving(true)
+    try {
+      const existingRaw = await apiRequest(`/api/subject/${topicId}`)
+      const existing = normalizeSubject(existingRaw)
+
+      const payload = {
+        subjectName: newTitle,
+        subjectText: existing.subjectText,
+        subjectPhoto: existing.subjectPhoto,
+        subjectLikes: existing.subjectLikes,
+        createdAt: existing.createdAt,
+        categoryId: existing.categoryId ?? Number(categoryId),
+        userId: existing.userId,
+      }
+
+      await apiRequest(`/api/subject/${topicId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+
+      setCategoryTopics((prev) =>
+        prev.map((t) => (t.id === String(topicId) ? { ...t, title: newTitle } : t))
+      )
+
+      setEditingId(null)
+      setEditTitle('')
+    } catch {
+      alert('Nu am putut edita topicul.')
+    } finally {
+      setEditSaving(false)
+    }
+  }
+
   if (!category) return <div>Category not found</div>
 
   return (
     <ForumLayout>
       <div className="max-w-5xl mx-auto">
-        {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
             <Link
@@ -100,25 +198,14 @@ export function TopicsList() {
               {category.title}
             </h1>
 
-            <p className="text-parchment-300 font-serif mt-1">
-              {category.description}
-            </p>
+            <p className="text-parchment-300 font-serif mt-1">{category.description}</p>
           </div>
+
           <button
-            initial={{
-              opacity: 0,
-              scale: 0.9,
-            }}
-            animate={{
-              opacity: 1,
-              scale: 1,
-            }}
-            whileHover={{
-              scale: 1.05,
-            }}
-            whileTap={{
-              scale: 0.95,
-            }}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => (window.location.href = `/new-topic?category=${id}`)}
             className="flex items-center gap-2 bg-gold-600 text-wood-900 px-6 py-3 rounded-sm font-bold font-display shadow-glow-gold border border-gold-400 hover:bg-gold-500 transition-colors"
           >
@@ -127,7 +214,6 @@ export function TopicsList() {
           </button>
         </div>
 
-        {/* Topics */}
         <div className="bg-wood-900/60 backdrop-blur-sm p-1 rounded-sm border border-wood-700">
           <div className="hidden sm:flex px-4 py-2 text-xs font-bold text-wood-500 uppercase tracking-widest border-b border-wood-700 mb-2">
             <div className="grow">Topic</div>
@@ -137,7 +223,19 @@ export function TopicsList() {
 
           <div className="space-y-1">
             {pagedTopics.map((topic, index) => (
-              <TopicCard key={topic.id} topic={topic} index={index} />
+              <TopicCard
+                key={topic.id}
+                topic={topic}
+                index={index}
+                onDelete={handleDeleteTopic}
+                onStartEdit={startEdit}
+                isEditing={String(editingId) === String(topic.id)}
+                editTitle={editTitle}
+                setEditTitle={setEditTitle}
+                onCancelEdit={cancelEdit}
+                onSaveEdit={saveEdit}
+                editSaving={editSaving}
+              />
             ))}
           </div>
 
@@ -148,7 +246,6 @@ export function TopicsList() {
           )}
         </div>
 
-        {/* Pagination */}
         {categoryTopics.length > 0 && totalPages > 1 && (
           <div className="flex justify-center mt-8 gap-2">
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (

@@ -1,9 +1,9 @@
-import React, { useContext, useEffect, useMemo, useState } from 'react'
+import { useContext, useEffect, useMemo, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { ForumLayout } from '../components/ForumLayout'
 import { PostCard } from '../components/PostCard'
 import { apiRequest } from '../api'
-import { ArrowLeft, Reply } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { AuthContext } from '../auth/AuthContext'
 
 export function ThreadView() {
@@ -51,6 +51,7 @@ export function ThreadView() {
           userNickname: m.userNickname,
           userAvatar: m.userAvatar,
           userRole: m.userRole,
+          userId: m.userId ?? m.user?.userId ?? null,
         }))
         setTopicPosts(mappedPosts)
 
@@ -62,6 +63,7 @@ export function ThreadView() {
             title: cat.categoryName,
           })
         }
+
         setLoading(false)
       } catch {
         if (!canceled) {
@@ -77,30 +79,6 @@ export function ThreadView() {
       canceled = true
     }
   }, [subjectId])
-
-  if (subjectId == null) {
-    return (
-      <ForumLayout>
-        <div className="max-w-5xl mx-auto">Topic not found</div>
-      </ForumLayout>
-    )
-  }
-
-  if (loading) {
-    return (
-      <ForumLayout>
-        <div className="max-w-5xl mx-auto">Loading...</div>
-      </ForumLayout>
-    )
-  }
-
-  if (!topic) {
-    return (
-      <ForumLayout>
-        <div className="max-w-5xl mx-auto">Topic not found</div>
-      </ForumLayout>
-    )
-  }
 
   const handleSendReply = async () => {
     if (!isAuthed || !user?.userId) return
@@ -133,19 +111,105 @@ export function ThreadView() {
           userNickname: created.userNickname,
           userAvatar: created.userAvatar,
           userRole: created.userRole,
+          userId: created.userId ?? user.userId,
         },
       ])
       setReplyText('')
-    } catch {
     } finally {
       setSending(false)
     }
   }
 
+  const handleDeletePost = async (postId) => {
+    if (!isAuthed) return
+    const ok = window.confirm('Ștergi mesajul?')
+    if (!ok) return
+
+    try {
+      await apiRequest(`/api/message/${postId}`, { token, method: 'DELETE' })
+      setTopicPosts((prev) => prev.filter((p) => p.id !== String(postId)))
+    } catch {
+      alert('Nu am putut șterge mesajul.')
+    }
+  }
+
+  const normalizeMessage = (m) => {
+    const subjectIdVal = m?.subjectId ?? m?.subject?.subjectId ?? m?.subject?.id ?? m?.subject ?? null
+    const userIdVal = m?.userId ?? m?.user?.userId ?? m?.user?.id ?? m?.user ?? null
+    return {
+      messageId: m?.messageId ?? m?.id ?? null,
+      messageText: m?.messageText ?? m?.content ?? '',
+      messagesPhoto: m?.messagesPhoto ?? m?.messagePhoto ?? m?.photo ?? null,
+      messageLikes: m?.messageLikes ?? m?.likes ?? '0',
+      createdAt: m?.createdAt ?? m?.created_at ?? null,
+      subjectId: subjectIdVal != null ? Number(subjectIdVal) : null,
+      userId: userIdVal != null ? Number(userIdVal) : null,
+    }
+  }
+
+  const handleEditPost = async (postId, newText) => {
+    if (!isAuthed) return
+    const text = (newText || '').trim()
+    if (!text) return
+
+    try {
+      const existingRaw = await apiRequest(`/api/message/${postId}`, { token })
+      const existing = normalizeMessage(existingRaw)
+
+      const payload = {
+        messageText: text,
+        messagesPhoto: existing.messagesPhoto,
+        messageLikes: existing.messageLikes,
+        createdAt: existing.createdAt,
+        subjectId: existing.subjectId ?? Number(subjectId),
+        userId: existing.userId ?? user?.userId,
+      }
+
+      const updated = await apiRequest(`/api/message/${postId}`, {
+        token,
+        method: 'PUT',
+        body: JSON.stringify(payload),
+      })
+
+      setTopicPosts((prev) =>
+        prev.map((p) =>
+          p.id === String(postId)
+            ? { ...p, content: updated?.messageText ?? text }
+            : p
+        )
+      )
+    } catch {
+      alert('Nu am putut edita mesajul.')
+    }
+  }
+
+  if (subjectId == null) {
+    return (
+      <ForumLayout>
+        <div className="max-w-5xl mx-auto">Topic not found</div>
+      </ForumLayout>
+    )
+  }
+
+  if (loading) {
+    return (
+      <ForumLayout>
+        <div className="max-w-5xl mx-auto">Loading...</div>
+      </ForumLayout>
+    )
+  }
+
+  if (!topic) {
+    return (
+      <ForumLayout>
+        <div className="max-w-5xl mx-auto">Topic not found</div>
+      </ForumLayout>
+    )
+  }
+
   return (
     <ForumLayout>
       <div className="max-w-5xl mx-auto">
-        {/* Breadcrumb */}
         <div className="mb-6">
           <Link
             to={category?.id ? `/category/${category.id}` : '/'}
@@ -172,27 +236,33 @@ export function ThreadView() {
                   </span>
                 </span>
                 <span>•</span>
-                <span>
-                  {new Date(topic.createdAt).toLocaleDateString()}
-                </span>
+                <span>{new Date(topic.createdAt).toLocaleDateString()}</span>
               </div>
             </div>
-
-            <button className="flex items-center gap-2 bg-wood-800 text-parchment-200 px-5 py-2 rounded-sm font-bold font-display border border-wood-500 hover:border-gold-500 hover:text-gold-400 transition-colors">
-              <Reply size={16} />
-              Post Reply
-            </button>
           </div>
         </div>
 
-        {/* Posts */}
         <div className="space-y-8">
-          {topicPosts.map((post, index) => (
-            <PostCard key={post.id} post={post} index={index} />
-          ))}
+          {topicPosts.map((post, index) => {
+            const canManage =
+              isAuthed &&
+              user?.userId &&
+              post.userId != null &&
+              String(post.userId) === String(user.userId)
+
+            return (
+              <PostCard
+                key={post.id}
+                post={post}
+                index={index}
+                canManage={canManage}
+                onDelete={handleDeletePost}
+                onEdit={handleEditPost}
+              />
+            )
+          })}
         </div>
 
-        {/* Quick Reply */}
         <div className="mt-12 bg-wood-900/90 border border-wood-600 p-6 rounded-sm">
           <h3 className="text-lg font-display font-bold text-parchment-200 mb-4">
             Quick Reply
