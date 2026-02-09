@@ -11,6 +11,7 @@ import java.util.List;
 @Repository
 public interface MessageRepository extends JpaRepository<Messages, Integer> {
     List<Messages> findBySubject_SubjectId(Integer subjectId);
+    long countByUser_UserId(Integer userId);
     long countBySubject_SubjectId(Integer subjectId);
     long countBySubject_Category_CategoryId(Integer categoryId);
 

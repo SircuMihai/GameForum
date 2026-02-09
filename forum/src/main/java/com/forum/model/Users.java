@@ -49,6 +49,9 @@ public class Users {
     @Column(name = "created_at")
     private String createdAt;
 
+    @Column(name = "quoto")
+    private String quoto;
+
     @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Subjects> subjects =  new ArrayList<>();

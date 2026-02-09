@@ -32,6 +32,9 @@ public class MessageService {
     @Autowired
     private MessageMapper messageMapper;
 
+    @Autowired
+    private AchievementsAwardService achievementsAwardService;
+
     public List<MessageResponse> findAll() {
         return messageRepository.findAll().stream()
                 .map(messageMapper::toResponse)
@@ -61,6 +64,11 @@ public class MessageService {
             entity.setUser(user);
         }
         Messages saved = messageRepository.save(entity);
+
+        Integer userId = saved.getUser() != null ? saved.getUser().getUserId() : null;
+        Integer subjectId = saved.getSubject() != null ? saved.getSubject().getSubjectId() : null;
+        achievementsAwardService.onMessageCreated(userId, subjectId);
+
         return messageMapper.toResponse(saved);
     }
 

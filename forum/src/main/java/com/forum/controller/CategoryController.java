@@ -5,6 +5,7 @@ import com.forum.dto.request.CategoryRequest;
 import com.forum.dto.response.CategoryResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -30,12 +31,14 @@ public class CategoryController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CategoryResponse> create(@RequestBody CategoryRequest request) {
         CategoryResponse created = categoryService.create(request);
         return ResponseEntity.created(URI.create("/api/category/" + created.getCategoryId())).body(created);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CategoryResponse> update(@PathVariable Integer id, @RequestBody CategoryRequest request) {
         return categoryService.update(id, request)
                 .map(ResponseEntity::ok)
@@ -43,6 +46,7 @@ public class CategoryController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
         if (categoryService.findById(id).isEmpty()) return ResponseEntity.notFound().build();
         categoryService.delete(id);

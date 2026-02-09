@@ -5,6 +5,7 @@ import com.forum.dto.request.AchievementRequest;
 import com.forum.dto.response.AchievementResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -30,12 +31,14 @@ public class AchievementController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AchievementResponse> create(@RequestBody AchievementRequest request) {
         AchievementResponse created = achievementService.create(request);
         return ResponseEntity.created(URI.create("/api/achievement/" + created.getAchievementId())).body(created);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AchievementResponse> update(@PathVariable Integer id, @RequestBody AchievementRequest request) {
         return achievementService.update(id, request)
                 .map(ResponseEntity::ok)
@@ -43,6 +46,7 @@ public class AchievementController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
         if (achievementService.findById(id).isEmpty()) return ResponseEntity.notFound().build();
         achievementService.delete(id);

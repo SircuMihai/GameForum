@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 
 import java.net.URI;
@@ -44,6 +45,7 @@ public class UserController {
     private UserMapper userMapper;
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public List<UserResponse> getAll() {
         return userService.findAll();
     }
@@ -63,6 +65,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}/title")
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     public ResponseEntity<UserResponse> setSelectedTitle(
             @PathVariable Integer id,
             @RequestBody SetTitleRequest request,
@@ -101,19 +104,22 @@ public class UserController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserResponse> create(@RequestBody UserRequest request) {
         UserResponse created = userService.create(request);
         return ResponseEntity.created(URI.create("/api/user/" + created.getUserId())).body(created);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserResponse> update(@PathVariable Integer id, @RequestBody UserRequest request) {
+    @PreAuthorize("hasRole('ADMIN') or #id == @userRepository.findByUserEmail(authentication.name).orElse(null)?.userId")
+    public ResponseEntity<UserResponse> update(@PathVariable Integer id, @RequestBody UserRequest request, Authentication authentication) {
         return userService.update(id, request)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
         if (userService.findById(id).isEmpty()) return ResponseEntity.notFound().build();
         userService.delete(id);

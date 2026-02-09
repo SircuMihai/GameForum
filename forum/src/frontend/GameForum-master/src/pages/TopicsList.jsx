@@ -4,10 +4,16 @@ import { ForumLayout } from '../components/ForumLayout'
 import { TopicCard } from '../components/TopicCard'
 import { apiRequest } from '../api'
 import { ArrowLeft, PlusCircle } from 'lucide-react'
+import { useContext } from 'react'
+import { AuthContext } from '../auth/AuthContext'
 
 export function TopicsList() {
   const { id } = useParams()
   const pageSize = 10
+
+  const { user } = useContext(AuthContext) || {}
+  const role = String(user?.role || user?.userRole || '').toUpperCase()
+  const isAdmin = role === 'ADMIN' || role === 'ROLE_ADMIN'
 
   const categoryId = useMemo(() => {
     const n = Number(id)
@@ -87,6 +93,7 @@ export function TopicsList() {
   }, [totalPages])
 
   const handleDeleteTopic = async (topicId) => {
+    if (!isAdmin) return
     const ok = window.confirm('Ștergi topicul?')
     if (!ok) return
     try {
@@ -99,6 +106,7 @@ export function TopicsList() {
   }
 
   const startEdit = (topic) => {
+    if (!isAdmin) return
     setEditingId(String(topic.id))
     setEditTitle(topic.title || '')
   }
@@ -227,6 +235,7 @@ export function TopicsList() {
                 key={topic.id}
                 topic={topic}
                 index={index}
+                canManage={isAdmin}
                 onDelete={handleDeleteTopic}
                 onStartEdit={startEdit}
                 isEditing={String(editingId) === String(topic.id)}

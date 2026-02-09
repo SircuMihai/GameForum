@@ -50,6 +50,9 @@ public class AuthentificationController {
 
     @PostMapping("/register")
     public ResponseEntity<UserResponse> register(@RequestBody UserRequest request) {
+        if (request != null) {
+            request.setRole(null);
+        }
         UserResponse created = userService.create(request);
         return ResponseEntity.created(URI.create("/api/user/" + created.getUserId())).body(created);
     }

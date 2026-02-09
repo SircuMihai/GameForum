@@ -5,6 +5,7 @@ import { MessageSquare, Clock, Pin, Trash2, Edit3, X, Check } from 'lucide-react
 export function TopicCard({
   topic,
   index,
+  canManage,
   onDelete,
   onStartEdit,
   isEditing,
@@ -146,27 +147,31 @@ export function TopicCard({
           </div>
 
           <div className="shrink-0 ml-2 flex items-center gap-2">
-            <button
-              type="button"
-              onClick={handleEditClick}
-              className="p-2 rounded-sm border border-wood-400/40 bg-wood-900/20 text-wood-700
+            {canManage ? (
+              <>
+                <button
+                  type="button"
+                  onClick={handleEditClick}
+                  className="p-2 rounded-sm border border-wood-400/40 bg-wood-900/20 text-wood-700
                          hover:text-gold-700 hover:border-gold-600 hover:bg-gold-900/10 transition-colors"
-              title="Edit topic"
-              disabled={isEditing || editSaving}
-            >
-              <Edit3 size={16} />
-            </button>
+                  title="Edit topic"
+                  disabled={isEditing || editSaving}
+                >
+                  <Edit3 size={16} />
+                </button>
 
-            <button
-              type="button"
-              onClick={handleDeleteClick}
-              className="p-2 rounded-sm border border-wood-400/40 bg-wood-900/20 text-wood-700
+                <button
+                  type="button"
+                  onClick={handleDeleteClick}
+                  className="p-2 rounded-sm border border-wood-400/40 bg-wood-900/20 text-wood-700
                          hover:text-red-300 hover:border-red-500 hover:bg-red-900/10 transition-colors"
-              title="Delete topic"
-              disabled={editSaving}
-            >
-              <Trash2 size={16} />
-            </button>
+                  title="Delete topic"
+                  disabled={editSaving}
+                >
+                  <Trash2 size={16} />
+                </button>
+              </>
+            ) : null}
           </div>
         </div>
       </Link>

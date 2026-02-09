@@ -39,13 +39,6 @@ public class Subjects {
     @Column(name = "subject_text", nullable = false)
     private String subjectText;
 
-    @Lob
-    @Column(name = "subject_photo")
-    private String subjectPhoto;
-
-    @Column(name = "subject_likes",  nullable = false)
-    private String subjectLikes;
-
     @Column(name = "created_at", nullable = false)
     private String createdAt;
 

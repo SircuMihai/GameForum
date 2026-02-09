@@ -5,5 +5,7 @@ services:
       - 'POSTGRES_DB=ForumDataBase'
       - 'POSTGRES_PASSWORD=mnbvc'
       - 'POSTGRES_USER=admin'
+    volumes:
+      - './import:/docker-entrypoint-initdb.d:ro'
     ports:
       - '6000:5432'

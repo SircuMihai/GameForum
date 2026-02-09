@@ -11,6 +11,26 @@ API-urile le gasiti la: C:\Users\mihai\IdeaProjects\GameForum\forum\src\backend\
 - **Node.js + npm**
 - **Java 17 JDK** (nu JRE)
 
+### Import date initiale (DB)
+
+La prima pornire a containerului Postgres, scripturile SQL din `forum/import` sunt rulate automat (montate in `/docker-entrypoint-initdb.d`).
+
+Daca ai pornit deja DB-ul inainte si vrei sa **reimporti** datele, trebuie sa stergi volumul / datele persistate si sa pornesti din nou DB-ul.
+
+Din folderul `forum` poti face reset la DB astfel:
+
+```powershell
+docker compose -f compose.yaml down
+docker compose -f compose.yaml up -d --force-recreate
+```
+
+Verificare rapida (tot din `forum`):
+
+```powershell
+docker compose -f compose.yaml exec -T ForumDataBase psql -U admin -d ForumDataBase -c "select count(*) from achievements;"
+docker compose -f compose.yaml exec -T ForumDataBase psql -U admin -d ForumDataBase -c "select count(*) from users;"
+```
+
 ### Pornire automata (DB + Backend + Frontend)
 
 Din radacina proiectului (`GameForum`) ruleaza:

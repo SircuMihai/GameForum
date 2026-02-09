@@ -29,13 +29,6 @@ public class Messages {
     @Column(name = "message_text", nullable = false)
     private String messageText;
 
-    @Lob
-    @Column(name = "message_photo")
-    private String messagesPhoto;
-
-    @Column(name = "message_likes",  nullable = false)
-    private String messageLikes;
-
     @Column(name = "created_at", nullable = false)
     private String createdAt;
 }

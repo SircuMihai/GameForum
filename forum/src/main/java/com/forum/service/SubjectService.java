@@ -37,6 +37,9 @@ public class SubjectService {
     @Autowired
     private SubjectMapper subjectMapper;
 
+    @Autowired
+    private AchievementsAwardService achievementsAwardService;
+
     public List<SubjectResponse> findAll() {
         List<Subjects> subjects = subjectRepository.findAll();
 
@@ -102,6 +105,11 @@ public class SubjectService {
             entity.setCategory(category);
         }
         Subjects saved = subjectRepository.save(entity);
+
+        if (saved.getUser() != null) {
+            achievementsAwardService.onSubjectCreated(saved.getUser().getUserId());
+        }
+
         SubjectResponse resp = subjectMapper.toResponse(saved);
         resp.setReplyCount(messageRepository.countBySubject_SubjectId(saved.getSubjectId()));
         return resp;

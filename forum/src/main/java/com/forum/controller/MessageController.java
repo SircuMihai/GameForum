@@ -5,6 +5,7 @@ import com.forum.dto.request.MessageRequest;
 import com.forum.dto.response.MessageResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -35,12 +36,14 @@ public class MessageController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     public ResponseEntity<MessageResponse> create(@RequestBody MessageRequest request) {
         MessageResponse created = messageService.create(request);
         return ResponseEntity.created(URI.create("/api/message/" + created.getMessageId())).body(created);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<MessageResponse> update(@PathVariable Integer id, @RequestBody MessageRequest request) {
         return messageService.update(id, request)
                 .map(ResponseEntity::ok)
@@ -48,6 +51,7 @@ public class MessageController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
         if (messageService.findById(id).isEmpty()) return ResponseEntity.notFound().build();
         messageService.delete(id);

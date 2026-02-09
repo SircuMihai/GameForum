@@ -44,6 +44,7 @@ public class UserService {
             throw new ConflictException("Nickname already in use: " + request.getNickname());
         }
         Users entity = userMapper.toEntity(request);
+        entity.setRole("USER");
         if (request.getPassword() != null) {
             entity.setPassword(passwordEncoder.encode(request.getPassword()));
         }
@@ -69,6 +70,7 @@ public class UserService {
             toUpdate.setSubjects(existing.getSubjects());
             toUpdate.setMessages(existing.getMessages());
             toUpdate.setAchievementsUsers(existing.getAchievementsUsers());
+            toUpdate.setRole(existing.getRole());
             if (request.getPassword() != null) {
                 toUpdate.setPassword(passwordEncoder.encode(request.getPassword()));
             } else {

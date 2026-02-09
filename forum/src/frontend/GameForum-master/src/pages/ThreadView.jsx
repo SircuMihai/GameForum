@@ -14,7 +14,9 @@ export function ThreadView() {
     return Number.isFinite(n) ? n : null
   }, [id])
 
-  const { token, user, isAuthed } = useContext(AuthContext) || {}
+  const { user, isAuthed } = useContext(AuthContext) || {}
+  const role = String(user?.role || user?.userRole || '').toUpperCase()
+  const isAdmin = role === 'ADMIN' || role === 'ROLE_ADMIN'
 
   const [topic, setTopic] = useState(null)
   const [topicPosts, setTopicPosts] = useState([])
@@ -90,7 +92,6 @@ export function ThreadView() {
       setSending(true)
       const now = new Date().toISOString()
       const created = await apiRequest('/api/message', {
-        token,
         method: 'POST',
         body: JSON.stringify({
           messageText: text,
@@ -121,12 +122,12 @@ export function ThreadView() {
   }
 
   const handleDeletePost = async (postId) => {
-    if (!isAuthed) return
+    if (!isAuthed || !isAdmin) return
     const ok = window.confirm('Ștergi mesajul?')
     if (!ok) return
 
     try {
-      await apiRequest(`/api/message/${postId}`, { token, method: 'DELETE' })
+      await apiRequest(`/api/message/${postId}`, { method: 'DELETE' })
       setTopicPosts((prev) => prev.filter((p) => p.id !== String(postId)))
     } catch {
       alert('Nu am putut șterge mesajul.')
@@ -148,12 +149,12 @@ export function ThreadView() {
   }
 
   const handleEditPost = async (postId, newText) => {
-    if (!isAuthed) return
+    if (!isAuthed || !isAdmin) return
     const text = (newText || '').trim()
     if (!text) return
 
     try {
-      const existingRaw = await apiRequest(`/api/message/${postId}`, { token })
+      const existingRaw = await apiRequest(`/api/message/${postId}`)
       const existing = normalizeMessage(existingRaw)
 
       const payload = {
@@ -166,7 +167,6 @@ export function ThreadView() {
       }
 
       const updated = await apiRequest(`/api/message/${postId}`, {
-        token,
         method: 'PUT',
         body: JSON.stringify(payload),
       })
@@ -244,11 +244,7 @@ export function ThreadView() {
 
         <div className="space-y-8">
           {topicPosts.map((post, index) => {
-            const canManage =
-              isAuthed &&
-              user?.userId &&
-              post.userId != null &&
-              String(post.userId) === String(user.userId)
+            const canManage = isAuthed && isAdmin
 
             return (
               <PostCard

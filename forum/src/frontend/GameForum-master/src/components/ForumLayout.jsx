@@ -10,6 +10,16 @@ export function ForumLayout({ children }) {
 
   const auth = useContext(AuthContext);
 
+  const normalizeUserId = (value) => {
+    if (value == null) return null;
+    if (typeof value === "number") return Number.isFinite(value) ? value : null;
+
+    const s = String(value).trim();
+    const cleaned = s.startsWith("u") || s.startsWith("U") ? s.slice(1) : s;
+    const n = Number(cleaned);
+    return Number.isFinite(n) ? n : null;
+  };
+
   const isAuthenticated =
     !!localStorage.getItem("token") ||
     !!localStorage.getItem("accessToken") ||
@@ -22,7 +32,7 @@ export function ForumLayout({ children }) {
     username: rawUser?.nickname || rawUser?.username || "Commander",
     level: rawUser?.level ?? "-",
     avatarUrl: rawUser?.avatar || "",
-    userId: rawUser?.userId ?? null,
+    userId: normalizeUserId(rawUser?.userId),
   };
 
   const handleLogout = () => {

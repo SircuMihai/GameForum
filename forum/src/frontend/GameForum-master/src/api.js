@@ -11,7 +11,7 @@ function getToken() {
 }
 
 export async function apiRequest(path, options = {}) {
-  const token = getToken();
+  const token = options?.token || getToken();
 
   const headers = new Headers(options.headers || {});
   // setează JSON doar dacă trimiți body și nu e deja setat

@@ -11,6 +11,8 @@ import java.util.List;
 @Repository
 public interface SubjectRepository extends JpaRepository<Subjects, Integer> {
     List<Subjects> findByCategory_CategoryId(Integer categoryId);
+    List<Subjects> findByUser_UserId(Integer userId);
+    long countByUser_UserId(Integer userId);
     long countByCategory_CategoryId(Integer categoryId);
 
     @Query("select s.category.categoryId, count(s) from Subjects s where s.category.categoryId in :categoryIds group by s.category.categoryId")

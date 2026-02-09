@@ -25,12 +25,12 @@ public class Achievements {
     @Column(name = "achievement_name", nullable = false, unique = true)
     private String achievementName;
 
+    @Column(name = "achievement_description", nullable = false, unique = true)
+    private String achievementDescription;
+
     @Lob
     @Column(name = "achievement_photo", nullable = false)
     private String achievementPhoto;
-
-    @Column(name = "achievement_xp_value", nullable = false)
-    private String achievementXPValue;
 
     @JsonIgnore
     @OneToMany(mappedBy = "achievements", cascade = CascadeType.ALL, orphanRemoval = true)

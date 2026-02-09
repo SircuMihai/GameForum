@@ -17,6 +17,25 @@ export default function UserProfile() {
 
   const isOwnProfile = userId != null && auth?.user?.userId != null && Number(auth.user.userId) === Number(userId)
 
+  const role = String(auth?.user?.role || auth?.user?.userRole || '').toUpperCase()
+  const isAdmin = role === 'ADMIN' || role === 'ROLE_ADMIN'
+
+  const onDeleteUser = async () => {
+    if (!isAdmin || userId == null || isOwnProfile) return
+
+    const ok = window.confirm('Ștergi utilizatorul?')
+    if (!ok) return
+
+    try {
+      await apiRequest(`/api/user/${userId}`, { method: 'DELETE', token: auth?.token })
+      setProfile(null)
+      setTitles([])
+      setError('User deleted')
+    } catch (err) {
+      setError(err?.message || 'Failed to delete user')
+    }
+  }
+
   const [profile, setProfile] = useState(null)
   const [titles, setTitles] = useState([])
   const [loading, setLoading] = useState(false)
@@ -114,6 +133,18 @@ export default function UserProfile() {
                   <div className="text-wood-500 text-xs uppercase tracking-widest font-bold mt-1">
                     {profile.role}
                   </div>
+
+                  {isAdmin && !isOwnProfile ? (
+                    <div className="mt-4">
+                      <button
+                        type="button"
+                        onClick={onDeleteUser}
+                        className="px-4 py-2 rounded-sm border border-red-600 bg-red-900/20 text-red-200 font-display font-bold text-sm hover:bg-red-900/30 transition"
+                      >
+                        Delete user
+                      </button>
+                    </div>
+                  ) : null}
 
                   <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="bg-wood-900/60 border border-wood-700 rounded-sm p-4">
