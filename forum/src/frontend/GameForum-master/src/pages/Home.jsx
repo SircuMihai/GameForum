@@ -1,4 +1,4 @@
-import { useEffect, useState,  } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { ForumLayout } from "../components/ForumLayout";
 import { CategoryCard } from "../components/CategoryCard";
@@ -56,8 +56,13 @@ const emptyForm = {
 };
 
 export function Home() {
+  const auth = useContext(AuthContext);
+
+  const role = useMemo(() => String(auth?.user?.role || auth?.user?.userRole || "").toUpperCase(), [auth?.user]);
+  const isAdmin = role === "ADMIN" || role === "ROLE_ADMIN";
   
   const [categories, setCategories] = useState([]);
+  const [stats, setStats] = useState({ members: 0, posts: 0 });
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(emptyForm);
@@ -68,6 +73,7 @@ export function Home() {
     return await apiRequest("/api/category", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      token: auth?.token,
       body: JSON.stringify(payload),
     });
   };
@@ -76,12 +82,13 @@ export function Home() {
     return await apiRequest(`/api/category/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
+      token: auth?.token,
       body: JSON.stringify(payload),
     });
   };
 
   const deleteCategory = async (id) => {
-    return await apiRequest(`/api/category/${id}`, { method: "DELETE" });
+    return await apiRequest(`/api/category/${id}`, { method: "DELETE", token: auth?.token });
   };
 
   useEffect(() => {
@@ -112,7 +119,30 @@ export function Home() {
     };
   }, []);
 
+  useEffect(() => {
+    let canceled = false;
+
+    (async () => {
+      try {
+        const data = await apiRequest("/api/stats");
+        if (canceled) return;
+
+        setStats({
+          members: Number(data?.members ?? 0),
+          posts: Number(data?.posts ?? 0),
+        });
+      } catch {
+        if (!canceled) setStats({ members: 0, posts: 0 });
+      }
+    })();
+
+    return () => {
+      canceled = true;
+    };
+  }, []);
+
   const openCreate = () => {
+    if (!isAdmin) return;
     setEditingId(null);
     setForm(emptyForm);
     setErrors({});
@@ -120,6 +150,7 @@ export function Home() {
   };
 
   const openEdit = (cat) => {
+    if (!isAdmin) return;
     setEditingId(String(cat.id));
     setForm({
       title: cat.title,
@@ -132,6 +163,7 @@ export function Home() {
   };
 
   const handleSave = async () => {
+    if (!isAdmin) return;
     const newErrors = {};
     if (!form.title.trim()) newErrors.title = "Title is required";
     if (!form.description.trim()) newErrors.description = "Description is required";
@@ -188,6 +220,7 @@ export function Home() {
   };
 
   const handleDelete = async (id) => {
+    if (!isAdmin) return;
     try {
       await deleteCategory(id);
       setCategories((prev) => prev.filter((c) => c.id !== String(id)));
@@ -213,14 +246,16 @@ export function Home() {
 
           <div className="absolute right-0 top-0 flex items-center gap-2">
 
-            <button
-              onClick={openCreate}
-              className="w-10 h-10 rounded-sm border border-gold-600 bg-wood-900/80 text-gold-400 hover:bg-wood-800 transition flex items-center justify-center text-2xl leading-none"
-              aria-label="Add category"
-              title="Add category"
-            >
-              +
-            </button>
+            {isAdmin ? (
+              <button
+                onClick={openCreate}
+                className="w-10 h-10 rounded-sm border border-gold-600 bg-wood-900/80 text-gold-400 hover:bg-wood-800 transition flex items-center justify-center text-2xl leading-none"
+                aria-label="Add category"
+                title="Add category"
+              >
+                +
+              </button>
+            ) : null}
           </div>
 
           <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-3/4 h-32 bg-black/40 blur-3xl -z-10 rounded-full" />
@@ -255,61 +290,8 @@ export function Home() {
           <CategoryCard {...category} index={index} />
         </div>
 
-        <div className="absolute top-2 right-2 z-30 flex gap-2 pointer-events-auto">
-          <button
-            type="button"
-            onMouseDown={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-            }}
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              openEdit(category)
-            }}
-            className="p-2 bg-wood-900/80 border border-wood-600 rounded-sm text-parchment-300 hover:text-gold-400 hover:border-gold-500 transition-colors"
-            title="Edit"
-          >
-            <Edit3 size={16} />
-          </button>
-
-          {deleteConfirm === category.id ? (
-            <>
-              <button
-                type="button"
-                onMouseDown={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                }}
-                onClick={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  handleDelete(category.id)
-                }}
-                className="p-2 bg-red-900/40 border border-red-600 rounded-sm text-red-300 hover:bg-red-900/60 transition-colors"
-                title="Confirm delete"
-              >
-                <Check size={16} />
-              </button>
-
-              <button
-                type="button"
-                onMouseDown={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                }}
-                onClick={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  setDeleteConfirm(null)
-                }}
-                className="p-2 bg-wood-900/80 border border-wood-600 rounded-sm text-parchment-300 hover:text-parchment-100 transition-colors"
-                title="Cancel"
-              >
-                <X size={16} />
-              </button>
-            </>
-          ) : (
+        {isAdmin ? (
+          <div className="absolute top-2 right-2 z-30 flex gap-2 pointer-events-auto">
             <button
               type="button"
               onMouseDown={(e) => {
@@ -319,15 +301,70 @@ export function Home() {
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
-                setDeleteConfirm(category.id)
+                openEdit(category)
               }}
-              className="p-2 bg-wood-900/80 border border-wood-600 rounded-sm text-parchment-300 hover:text-red-400 hover:border-red-600 transition-colors"
-              title="Delete"
+              className="p-2 bg-wood-900/80 border border-wood-600 rounded-sm text-parchment-300 hover:text-gold-400 hover:border-gold-500 transition-colors"
+              title="Edit"
             >
-              <Trash2 size={16} />
+              <Edit3 size={16} />
             </button>
-          )}
-        </div>
+
+            {deleteConfirm === category.id ? (
+              <>
+                <button
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                  }}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    handleDelete(category.id)
+                  }}
+                  className="p-2 bg-red-900/40 border border-red-600 rounded-sm text-red-300 hover:bg-red-900/60 transition-colors"
+                  title="Confirm delete"
+                >
+                  <Check size={16} />
+                </button>
+
+                <button
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                  }}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    setDeleteConfirm(null)
+                  }}
+                  className="p-2 bg-wood-900/80 border border-wood-600 rounded-sm text-parchment-300 hover:text-parchment-100 transition-colors"
+                  title="Cancel"
+                >
+                  <X size={16} />
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                onMouseDown={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                }}
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  setDeleteConfirm(category.id)
+                }}
+                className="p-2 bg-wood-900/80 border border-wood-600 rounded-sm text-parchment-300 hover:text-red-400 hover:border-red-600 transition-colors"
+                title="Delete"
+              >
+                <Trash2 size={16} />
+              </button>
+            )}
+          </div>
+        ) : null}
       </div>
     </div>
   ))}
@@ -336,13 +373,33 @@ export function Home() {
 
         {/* Stats */}
         <div className="mt-12 bg-wood-900/80 border border-wood-600 p-6 rounded-sm backdrop-blur-sm">
-          {/* ... */}
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
+            <div>
+              <h3 className="text-gold-400 font-display font-bold text-lg mb-1">Forum Statistics</h3>
+              <p className="text-parchment-400 text-sm">Our growing empire in numbers</p>
+            </div>
+
+            <div className="flex gap-8 md:gap-12">
+              <div>
+                <span className="block text-2xl font-bold text-parchment-200 font-display">
+                  {Number(stats.members || 0).toLocaleString()}
+                </span>
+                <span className="text-xs text-wood-500 uppercase tracking-widest">Members</span>
+              </div>
+              <div>
+                <span className="block text-2xl font-bold text-parchment-200 font-display">
+                  {Number(stats.posts || 0).toLocaleString()}
+                </span>
+                <span className="text-xs text-wood-500 uppercase tracking-widest">Posts</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* MODAL */}
         {createPortal(
           <AnimatePresence>
-            {modalOpen && (
+            {modalOpen && isAdmin && (
               <>
                 {/* Backdrop */}
                 <div

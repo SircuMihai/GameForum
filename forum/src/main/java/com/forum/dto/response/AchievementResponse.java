@@ -11,5 +11,5 @@ public class AchievementResponse {
     private Integer achievementId;
     private String achievementName;
     private String achievementPhoto;
-    private String achievementXPValue;
+    private String achievementDescription;
 }

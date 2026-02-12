@@ -1,9 +1,12 @@
 package com.forum.controller;
 
 import com.forum.dto.mapper.UserMapper;
+import com.forum.dto.mapper.AchievementMapper;
+import com.forum.dto.request.SetQuotoRequest;
 import com.forum.dto.request.SetTitleRequest;
 import com.forum.service.UserService;
 import com.forum.dto.request.UserRequest;
+import com.forum.dto.response.AchievementResponse;
 import com.forum.dto.response.TitleOptionResponse;
 import com.forum.dto.response.UserResponse;
 import com.forum.exception.BadRequestException;
@@ -44,6 +47,9 @@ public class UserController {
     @Autowired
     private UserMapper userMapper;
 
+    @Autowired
+    private AchievementMapper achievementMapper;
+
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public List<UserResponse> getAll() {
@@ -61,6 +67,13 @@ public class UserController {
     public List<TitleOptionResponse> getUnlockedTitles(@PathVariable Integer id) {
         return achievementsUsersRepository.findUnlockedAchievementsByUserId(id).stream()
                 .map(a -> new TitleOptionResponse(a.getAchievementId(), a.getAchievementName()))
+                .collect(Collectors.toList());
+    }
+
+    @GetMapping("/{id}/achievements")
+    public List<AchievementResponse> getUnlockedAchievements(@PathVariable Integer id) {
+        return achievementsUsersRepository.findUnlockedAchievementsByUserId(id).stream()
+                .map(achievementMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
@@ -99,6 +112,30 @@ public class UserController {
                 .orElseThrow(() -> new NotFoundException("Achievement not found: " + achievementId));
 
         authedUser.setSelectedTitleAchievement(achievement);
+        Users saved = userRepository.save(authedUser);
+        return ResponseEntity.ok(userMapper.toResponse(saved));
+    }
+
+    @PutMapping("/{id}/quoto")
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    public ResponseEntity<UserResponse> setQuoto(
+            @PathVariable Integer id,
+            @RequestBody SetQuotoRequest request,
+            Authentication authentication
+    ) {
+        if (authentication == null || authentication.getName() == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        Users authedUser = userRepository.findByUserEmail(authentication.getName())
+                .orElseThrow(() -> new NotFoundException("User not found: " + authentication.getName()));
+
+        if (!id.equals(authedUser.getUserId())) {
+            throw new AccessDeniedException("You can only change your own quoto");
+        }
+
+        String quoto = request != null ? request.getQuoto() : null;
+        authedUser.setQuoto(quoto);
         Users saved = userRepository.save(authedUser);
         return ResponseEntity.ok(userMapper.toResponse(saved));
     }

@@ -30,7 +30,6 @@ export function ForumLayout({ children }) {
 
   const displayUser = {
     username: rawUser?.nickname || rawUser?.username || "Commander",
-    level: rawUser?.level ?? "-",
     avatarUrl: rawUser?.avatar || "",
     userId: normalizeUserId(rawUser?.userId),
   };
@@ -105,9 +104,6 @@ export function ForumLayout({ children }) {
                   <div className="flex flex-col items-end">
                     <span className="text-gold-400 font-display font-bold text-sm">
                       {displayUser.username}
-                    </span>
-                    <span className="text-xs text-bronze-500 uppercase">
-                      Level {displayUser.level}
                     </span>
                   </div>
 

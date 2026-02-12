@@ -9,6 +9,7 @@ import com.forum.repository.UserRepository;
 import com.forum.repository.UserAuthView;
 import com.forum.security.JwtTokenStore;
 import com.forum.security.JwtUtil;
+import com.forum.service.AchievementsAwardService;
 import com.forum.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,6 +23,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.time.OffsetDateTime;
 
 @RestController
 @RequestMapping("api/auth")
@@ -47,6 +49,9 @@ public class AuthentificationController {
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private AchievementsAwardService achievementsAwardService;
 
     @PostMapping("/register")
     public ResponseEntity<UserResponse> register(@RequestBody UserRequest request) {
@@ -74,6 +79,17 @@ public class AuthentificationController {
             jwtTokenStore.revokeTokensByUsername(user.getUserEmail());
             String token = jwtUtil.generateToken(userDetails);
             jwtTokenStore.storeToken(token, user.getUserId(), user.getUserEmail());
+
+            userRepository.findById(user.getUserId()).ifPresent(u -> {
+                String now = OffsetDateTime.now().toString();
+                u.setLastLogin(now);
+                if (u.getCreatedAt() == null) {
+                    u.setCreatedAt(now);
+                }
+                userRepository.save(u);
+            });
+
+            achievementsAwardService.onUserLogin(user.getUserId());
 
             return ResponseEntity.ok(new LoginResponse(true, token));
         } catch (BadCredentialsException e) {

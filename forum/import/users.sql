@@ -20,6 +20,4 @@ create table users
 alter table users
     owner to admin;
 
-INSERT INTO public.users (selected_title_achievement_id, user_id, created_at, last_login, nickname, password, role, user_email, avatar, quoto) VALUES (1, 1, null, null, 'Iahim', '$2a$10$wdl9uiG7QY4irXcMp9welON2F//09kZgt6AmSuRsoBNW/qVfyGwKG', 'USER', 'mihaisircu13@gmail.com', null, null);
-INSERT INTO public.users (selected_title_achievement_id, user_id, created_at, last_login, nickname, password, role, user_email, avatar, quoto) VALUES (null, 2, null, null, 'Mihai', '$2a$10$BA.HJ4fmJUnfsBDjDjDeBewB0ELErlwc4wL1Twegt2NJC8SJEOZ6e', 'ADMIN', 'mihailsircu5@gmail.com', null, null);
 INSERT INTO public.users (selected_title_achievement_id, user_id, created_at, last_login, nickname, password, role, user_email, avatar, quoto) VALUES (5, 3, null, null, 'ADMIN', '$2a$10$DYuecJVpznRfXm/6Mninb.pdqHDGQcu3mNLMX9i8Bm/K2whNIn/vK', 'ADMIN', 'ADMIN@gmail.com', null, null);

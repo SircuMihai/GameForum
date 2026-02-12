@@ -28,8 +28,7 @@ public class Achievements {
     @Column(name = "achievement_description", nullable = false, unique = true)
     private String achievementDescription;
 
-    @Lob
-    @Column(name = "achievement_photo", nullable = false)
+    @Column(name = "achievement_photo", length = 512)
     private String achievementPhoto;
 
     @JsonIgnore

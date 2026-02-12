@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -45,6 +46,13 @@ public class UserService {
         }
         Users entity = userMapper.toEntity(request);
         entity.setRole("USER");
+        String now = OffsetDateTime.now().toString();
+        if (entity.getCreatedAt() == null) {
+            entity.setCreatedAt(now);
+        }
+        if (entity.getLastLogin() == null) {
+            entity.setLastLogin(now);
+        }
         if (request.getPassword() != null) {
             entity.setPassword(passwordEncoder.encode(request.getPassword()));
         }

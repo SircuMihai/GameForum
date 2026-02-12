@@ -6,6 +6,7 @@ import com.forum.model.Subjects;
 import com.forum.model.Users;
 import com.forum.repository.AchievementsRepository;
 import com.forum.repository.AchievementsUsersRepository;
+import com.forum.repository.CategoryRepository;
 import com.forum.repository.MessageRepository;
 import com.forum.repository.SubjectRepository;
 import com.forum.repository.UserRepository;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
+import java.time.Duration;
 import java.util.List;
 
 @Service
@@ -24,10 +26,13 @@ public class AchievementsAwardService {
     private static final int ACH_VETERAN_COMMANDER_250_MESSAGES = 3;
     private static final int ACH_MASTER_STRATEGIST_TOPIC_50_REPLIES = 4;
     private static final int ACH_IMPERIAL_ADVISOR_ADMIN = 5;
+    private static final int ACH_EXPLORER_ALL_CATEGORIES = 6;
     private static final int ACH_SKIRMISHER_10_MESSAGES = 7;
     private static final int ACH_LINE_INFANTRY_50_MESSAGES = 8;
     private static final int ACH_WARLORD_1000_MESSAGES = 10;
     private static final int ACH_MASTER_OF_BATTLEFIELD_5000_MESSAGES = 11;
+    private static final int ACH_UNBREAKABLE_100_DAYS_FROM_CREATION = 12;
+    private static final int ACH_IRON_WILL_1_YEAR_FROM_CREATION = 13;
     private static final int ACH_VILLAGE_BUILDER_10_TOPICS = 14;
     private static final int ACH_CITY_ARCHITECT_50_TOPICS = 15;
     private static final int ACH_CAPITAL_ESTABLISHED_200_TOPICS = 16;
@@ -45,6 +50,9 @@ public class AchievementsAwardService {
     private SubjectRepository subjectRepository;
 
     @Autowired
+    private CategoryRepository categoryRepository;
+
+    @Autowired
     private MessageRepository messageRepository;
 
     public void onSubjectCreated(Integer userId) {
@@ -59,6 +67,8 @@ public class AchievementsAwardService {
 
         // Admin achievement (in case role already admin)
         awardIfAdmin(userId);
+        awardIfAccountOldEnough(userId);
+        awardIfExplorer(userId);
     }
 
     public void onMessageCreated(Integer userId, Integer subjectId) {
@@ -83,6 +93,7 @@ public class AchievementsAwardService {
         }
 
         awardIfAdmin(userId);
+        awardIfExplorer(userId);
     }
 
     public void recalculateForUser(Integer userId) {
@@ -123,10 +134,47 @@ public class AchievementsAwardService {
         }
     }
 
+    public void onUserLogin(Integer userId) {
+        if (userId == null) return;
+        awardIfAccountOldEnough(userId);
+    }
+
     private void awardIfAdmin(Integer userId) {
         Users u = userRepository.findById(userId).orElse(null);
         if (u != null && u.getRole() != null && u.getRole().equalsIgnoreCase("ADMIN")) {
             award(userId, ACH_IMPERIAL_ADVISOR_ADMIN);
+        }
+    }
+
+    private void awardIfAccountOldEnough(Integer userId) {
+        Users u = userRepository.findById(userId).orElse(null);
+        if (u == null || u.getCreatedAt() == null) return;
+
+        OffsetDateTime created;
+        try {
+            created = OffsetDateTime.parse(u.getCreatedAt());
+        } catch (Exception ex) {
+            return;
+        }
+
+        OffsetDateTime now = OffsetDateTime.now();
+        long days = Duration.between(created, now).toDays();
+
+        if (days >= 100) {
+            award(userId, ACH_UNBREAKABLE_100_DAYS_FROM_CREATION);
+        }
+        if (days >= 365) {
+            award(userId, ACH_IRON_WILL_1_YEAR_FROM_CREATION);
+        }
+    }
+
+    private void awardIfExplorer(Integer userId) {
+        long totalCategories = categoryRepository.count();
+        if (totalCategories <= 0) return;
+
+        long userCategories = subjectRepository.countDistinctCategoriesByUserId(userId);
+        if (userCategories >= totalCategories) {
+            award(userId, ACH_EXPLORER_ALL_CATEGORIES);
         }
     }
 

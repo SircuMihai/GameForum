@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 public class AchievementRequest {
     private String achievementName;
     private String achievementPhoto;
-    private String achievementXPValue;
+    private String achievementDescription;
 }

@@ -38,9 +38,39 @@ export default function UserProfile() {
 
   const [profile, setProfile] = useState(null)
   const [titles, setTitles] = useState([])
+  const [allAchievements, setAllAchievements] = useState([])
+  const [unlockedAchievements, setUnlockedAchievements] = useState([])
   const [loading, setLoading] = useState(false)
   const [savingTitle, setSavingTitle] = useState(false)
+  const [savingQuoto, setSavingQuoto] = useState(false)
+  const [quotoDraft, setQuotoDraft] = useState('')
   const [error, setError] = useState('')
+
+  const normalizeAchievementPhotoSrc = (value) => {
+    if (!value) return ''
+
+    const v = String(value).trim()
+    if (!v) return ''
+
+    // expected: /Achievments/first_battle.png
+    if (v.startsWith('/')) return v
+
+    // handle malformed values like: achievments_first_battle_png
+    const m = v.toLowerCase().match(/^achievments_([a-z0-9_]+)_png$/)
+    if (m && m[1]) return `/Achievments/${m[1]}.png`
+
+    // handle relative values like: Achievments/first_battle.png
+    if (v.toLowerCase().startsWith('achievments/')) return '/' + v
+
+    return v
+  }
+
+  const formatAchievementText = (value) => {
+    if (!value) return ''
+    const v = String(value).trim()
+    if (!v) return ''
+    return v.replace(/_/g, ' ')
+  }
 
   useEffect(() => {
     if (userId == null) return
@@ -51,18 +81,25 @@ export default function UserProfile() {
         setLoading(true)
         setError('')
 
-        const [u, unlocked] = await Promise.all([
+        const [u, unlockedTitles, allAch, unlockedAch] = await Promise.all([
           apiRequest(`/api/user/${userId}`),
           apiRequest(`/api/user/${userId}/titles`),
+          apiRequest('/api/achievement'),
+          apiRequest(`/api/user/${userId}/achievements`),
         ])
 
         if (canceled) return
         setProfile(u)
-        setTitles(Array.isArray(unlocked) ? unlocked : [])
+        setQuotoDraft(u?.quoto || '')
+        setTitles(Array.isArray(unlockedTitles) ? unlockedTitles : [])
+        setAllAchievements(Array.isArray(allAch) ? allAch : [])
+        setUnlockedAchievements(Array.isArray(unlockedAch) ? unlockedAch : [])
       } catch (e) {
         if (!canceled) {
           setProfile(null)
           setTitles([])
+          setAllAchievements([])
+          setUnlockedAchievements([])
           setError(e?.message || 'Failed to load user profile')
         }
       } finally {
@@ -100,6 +137,31 @@ export default function UserProfile() {
       setError(err?.message || 'Failed to update title')
     } finally {
       setSavingTitle(false)
+    }
+  }
+
+  const onSaveQuoto = async () => {
+    if (!isOwnProfile) return
+    if (!auth?.token) {
+      setError('You must be logged in to change your quoto')
+      return
+    }
+    if (savingQuoto) return
+
+    try {
+      setSavingQuoto(true)
+      setError('')
+      const updated = await apiRequest(`/api/user/${userId}/quoto`, {
+        method: 'PUT',
+        token: auth.token,
+        body: JSON.stringify({ quoto: quotoDraft }),
+      })
+      setProfile(updated)
+      setQuotoDraft(updated?.quoto || '')
+    } catch (err) {
+      setError(err?.message || 'Failed to update quoto')
+    } finally {
+      setSavingQuoto(false)
     }
   }
 
@@ -179,7 +241,67 @@ export default function UserProfile() {
                         </div>
                       ) : null}
                     </div>
+
+                    <div className="bg-wood-900/60 border border-wood-700 rounded-sm p-4 md:col-span-2">
+                      <div className="text-xs text-wood-500 uppercase tracking-widest font-bold mb-1">Quoto</div>
+                      {!isOwnProfile ? (
+                        <div className="text-parchment-200 font-serif italic break-words">{profile.quoto || ''}</div>
+                      ) : (
+                        <div className="space-y-3">
+                          <textarea
+                            className="bg-wood-800 text-parchment-200 border border-wood-600 rounded-sm px-3 py-2 w-full min-h-24 font-serif"
+                            value={quotoDraft}
+                            onChange={(e) => setQuotoDraft(e.target.value)}
+                            disabled={savingQuoto}
+                            placeholder="Write your quoto..."
+                          />
+                          <div className="flex justify-end">
+                            <button
+                              type="button"
+                              onClick={onSaveQuoto}
+                              disabled={savingQuoto}
+                              className="px-4 py-2 rounded-sm border border-gold-600 bg-gold-600/20 text-parchment-200 font-display font-bold text-sm hover:bg-gold-600/30 transition disabled:opacity-60"
+                            >
+                              {savingQuoto ? 'Saving...' : 'Save'}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
+                </div>
+              </div>
+
+              <div className="achievements-container">
+                <div className="text-xs text-wood-500 uppercase tracking-widest font-bold mb-4">Achievements</div>
+
+                <div className="achievements-grid" id="achievements-grid">
+                  {allAchievements.map((a) => {
+                    const unlocked = unlockedAchievements.some((u) => Number(u.achievementId) === Number(a.achievementId))
+                    const photoSrc = normalizeAchievementPhotoSrc(a.achievementPhoto)
+                    const tooltipText = formatAchievementText(a.achievementDescription || a.achievementName)
+                    const displayName = formatAchievementText(a.achievementName)
+
+                    return (
+                      <div
+                        key={a.achievementId}
+                        className={`achievement ${unlocked ? '' : 'locked'}`}
+                      >
+                        <div className="achievement-icon">
+                          {photoSrc ? (
+                            <img
+                              src={photoSrc}
+                              alt={a.achievementName}
+                              draggable={false}
+                            />
+                          ) : null}
+                          {unlocked ? <div className="achievement-ribbon" /> : null}
+                        </div>
+                        {tooltipText ? <div className="achievement-tooltip">{tooltipText}</div> : null}
+                        <div className="achievement-name">{displayName}</div>
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             </div>

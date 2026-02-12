@@ -59,7 +59,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/category/**", "/api/subject/**", "/api/message/**", "/api/achievement/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/user/*", "/api/user/*/titles").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/user/*", "/api/user/*/titles", "/api/user/*/achievements", "/api/stats/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex

@@ -4,30 +4,30 @@ create table achievements
         primary key,
     achievement_name        varchar(255) not null
         unique,
-    achievement_photo       oid,
+    achievement_photo       varchar(512),
     achievement_description text
 );
 
 alter table achievements
     owner to admin;
 
-INSERT INTO public.achievements (achievement_id, achievement_name, achievement_photo, achievement_description) VALUES (2, 'First Battle', null, 'Created your first post on the battlefield');
-INSERT INTO public.achievements (achievement_id, achievement_name, achievement_photo, achievement_description) VALUES (3, 'Veteran Commander', null, 'Commanded respect in 250 discussions');
-INSERT INTO public.achievements (achievement_id, achievement_name, achievement_photo, achievement_description) VALUES (4, 'Master Strategist', null, 'Created a topic with 50+ replies');
-INSERT INTO public.achievements (achievement_id, achievement_name, achievement_photo, achievement_description) VALUES (1, 'Town Founder', null, 'Created your first topic');
-INSERT INTO public.achievements (achievement_id, achievement_name, achievement_photo, achievement_description) VALUES (5, 'Imperial Advisor', null, 'Became a moderator or admin');
-INSERT INTO public.achievements (achievement_id, achievement_name, achievement_photo, achievement_description) VALUES (6, 'Explorer', null, 'Visited every category');
-INSERT INTO public.achievements (achievement_id, achievement_name, achievement_photo, achievement_description) VALUES (7, 'Skirmisher', null, 'Engaged in 10 discussions with tactical precision');
-INSERT INTO public.achievements (achievement_id, achievement_name, achievement_photo, achievement_description) VALUES (8, 'Line Infantry', null, 'A disciplined regular. 50 posts created');
-INSERT INTO public.achievements (achievement_id, achievement_name, achievement_photo, achievement_description) VALUES (10, 'Warlord', null, 'A legendary figure of 1,000 battles');
-INSERT INTO public.achievements (achievement_id, achievement_name, achievement_photo, achievement_description) VALUES (11, 'Master of the Battlefield', null, 'Dominated 5,000 engagements with unmatched skill');
-INSERT INTO public.achievements (achievement_id, achievement_name, achievement_photo, achievement_description) VALUES (12, 'Unbreakable', null, '100 consecutive days active');
-INSERT INTO public.achievements (achievement_id, achievement_name, achievement_photo, achievement_description) VALUES (13, 'Iron Will', null, '1 year of continuous service');
-INSERT INTO public.achievements (achievement_id, achievement_name, achievement_photo, achievement_description) VALUES (14, 'Village Builder', null, '10 topics created');
-INSERT INTO public.achievements (achievement_id, achievement_name, achievement_photo, achievement_description) VALUES (15, 'City Architect', null, '50 topics created');
-INSERT INTO public.achievements (achievement_id, achievement_name, achievement_photo, achievement_description) VALUES (16, 'Capital Established', null, '200 topics created');
-INSERT INTO public.achievements (achievement_id, achievement_name, achievement_photo, achievement_description) VALUES (17, 'Pillar of the Empire', null, 'Highly respected community member');
-INSERT INTO public.achievements (achievement_id, achievement_name, achievement_photo, achievement_description) VALUES (18, 'Founder''s Seal', null, 'Early registration member');
-INSERT INTO public.achievements (achievement_id, achievement_name, achievement_photo, achievement_description) VALUES (19, 'Imperial Favor', null, 'Granted by administrators');
-INSERT INTO public.achievements (achievement_id, achievement_name, achievement_photo, achievement_description) VALUES (20, 'Legend of the Realm', null, 'Historic community figure');
-INSERT INTO public.achievements (achievement_id, achievement_name, achievement_photo, achievement_description) VALUES (21, 'Hero of the Age', null, 'Wololoooo');
+INSERT INTO public.achievements (achievement_id, achievement_name, achievement_photo, achievement_description) VALUES (2, 'First Battle', '/Achievments/first_battle.png', 'Created your first post on the battlefield');
+INSERT INTO public.achievements (achievement_id, achievement_name, achievement_photo, achievement_description) VALUES (3, 'Veteran Commander', '/Achievments/veteran_commander.png', 'Commanded respect in 250 discussions');
+INSERT INTO public.achievements (achievement_id, achievement_name, achievement_photo, achievement_description) VALUES (4, 'Master Strategist', '/Achievments/master_battlefield.png', 'Created a topic with 50+ replies');
+INSERT INTO public.achievements (achievement_id, achievement_name, achievement_photo, achievement_description) VALUES (1, 'Town Founder', '/Achievments/town_founder.png', 'Created your first topic');
+INSERT INTO public.achievements (achievement_id, achievement_name, achievement_photo, achievement_description) VALUES (5, 'Imperial Advisor', '/Achievments/imperial_favor.png', 'Became a moderator or admin');
+INSERT INTO public.achievements (achievement_id, achievement_name, achievement_photo, achievement_description) VALUES (6, 'Explorer', '/Achievments/legend_realm.png', 'Visited every category');
+INSERT INTO public.achievements (achievement_id, achievement_name, achievement_photo, achievement_description) VALUES (7, 'Skirmisher', '/Achievments/skirmisher.png', 'Engaged in 10 discussions with tactical precision');
+INSERT INTO public.achievements (achievement_id, achievement_name, achievement_photo, achievement_description) VALUES (8, 'Line Infantry', '/Achievments/line_infantry.png', 'A disciplined regular. 50 posts created');
+INSERT INTO public.achievements (achievement_id, achievement_name, achievement_photo, achievement_description) VALUES (10, 'Warlord', '/Achievments/warlord.png', 'A legendary figure of 1,000 battles');
+INSERT INTO public.achievements (achievement_id, achievement_name, achievement_photo, achievement_description) VALUES (11, 'Master of the Battlefield', '/Achievments/master_battlefield.png', 'Dominated 5,000 engagements with unmatched skill');
+INSERT INTO public.achievements (achievement_id, achievement_name, achievement_photo, achievement_description) VALUES (12, 'Unbreakable', '/Achievments/unbreakable.png', '100 consecutive days active');
+INSERT INTO public.achievements (achievement_id, achievement_name, achievement_photo, achievement_description) VALUES (13, 'Iron Will', '/Achievments/iron_will.png', '1 year of continuous service');
+INSERT INTO public.achievements (achievement_id, achievement_name, achievement_photo, achievement_description) VALUES (14, 'Village Builder', '/Achievments/village_builder.png', '10 topics created');
+INSERT INTO public.achievements (achievement_id, achievement_name, achievement_photo, achievement_description) VALUES (15, 'City Architect', '/Achievments/city_architect.png', '50 topics created');
+INSERT INTO public.achievements (achievement_id, achievement_name, achievement_photo, achievement_description) VALUES (16, 'Capital Established', '/Achievments/capital_established.png', '200 topics created');
+INSERT INTO public.achievements (achievement_id, achievement_name, achievement_photo, achievement_description) VALUES (17, 'Pillar of the Empire', '/Achievments/pillar_empire.png', 'Highly respected community member');
+INSERT INTO public.achievements (achievement_id, achievement_name, achievement_photo, achievement_description) VALUES (18, 'Founder''s Seal', '/Achievments/founders_seal.png', 'Early registration member');
+INSERT INTO public.achievements (achievement_id, achievement_name, achievement_photo, achievement_description) VALUES (19, 'Imperial Favor', '/Achievments/imperial_favor.png', 'Granted by administrators');
+INSERT INTO public.achievements (achievement_id, achievement_name, achievement_photo, achievement_description) VALUES (20, 'Legend of the Realm', '/Achievments/legend_realm.png', 'Historic community figure');
+INSERT INTO public.achievements (achievement_id, achievement_name, achievement_photo, achievement_description) VALUES (21, 'Hero of the Age', '/Achievments/hero_age.png', 'Wololoooo');

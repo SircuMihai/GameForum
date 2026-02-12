@@ -27,7 +27,7 @@ public class Users {
 
     @Lob
     @Column(name = "avatar")
-    private String avatar;
+    private byte[] avatar;
 
     @Column(name = "password", nullable = false)
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
