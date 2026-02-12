@@ -17,4 +17,5 @@ public class UserResponse {
     private String selectedTitleName;
     private String lastLogin;
     private String createdAt;
+    private String quoto;
 }

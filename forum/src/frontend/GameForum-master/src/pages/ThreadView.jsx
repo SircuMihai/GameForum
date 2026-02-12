@@ -53,6 +53,7 @@ export function ThreadView() {
           userNickname: m.userNickname,
           userAvatar: m.userAvatar,
           userRole: m.userRole,
+          userQuoto: m.userQuoto,
           userId: m.userId ?? m.user?.userId ?? null,
         }))
         setTopicPosts(mappedPosts)

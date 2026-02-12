@@ -18,4 +18,5 @@ public class MessageResponse {
     private String userNickname;
     private String userAvatar;
     private String userRole;
+    private String userQuoto;
 }

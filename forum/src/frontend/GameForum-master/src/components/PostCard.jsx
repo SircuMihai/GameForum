@@ -7,10 +7,26 @@ export function PostCard({ post, index, canManage, onDelete, onEdit }) {
     username: post?.userNickname || 'Unknown',
     role: post?.userRole || 'user',
     avatarUrl: post?.userAvatar,
-    postCount: post?.userPostCount ?? 0,
-    joinDate: post?.userJoinDate ?? '-',
-    bio: post?.userBio ?? '',
+    quoto: post?.userQuoto ?? '',
   }
+
+  const postedAtText = (() => {
+    if (!post?.createdAt) return '-'
+    const d = new Date(post.createdAt)
+    if (Number.isNaN(d.getTime())) return String(post.createdAt)
+    const date = d.toLocaleDateString()
+    const time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+    return `${date} ${time}`
+  })()
+
+  const headerTimestampText = (() => {
+    if (!post?.createdAt) return '-'
+    const d = new Date(post.createdAt)
+    if (Number.isNaN(d.getTime())) return String(post.createdAt)
+    const date = d.toLocaleDateString()
+    const time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+    return `${date} • ${time}`
+  })()
 
   const [isEditing, setIsEditing] = useState(false)
   const [draft, setDraft] = useState(post?.content || '')
@@ -63,22 +79,17 @@ export function PostCard({ post, index, canManage, onDelete, onEdit }) {
             />
 
             <div className="mt-6 w-full space-y-2">
-              <div className="flex justify-between text-xs text-parchment-400">
-                <span>Posts:</span>
-                <span className="text-gold-500">{author.postCount}</span>
-              </div>
-              <div className="flex justify-between text-xs text-parchment-400">
-                <span>Joined:</span>
-                <span className="text-parchment-200">{author.joinDate}</span>
+              <div className="flex justify-between text-sm text-parchment-400">
+                <span>Posted:</span>
+                <span className="text-parchment-200">{postedAtText}</span>
               </div>
             </div>
           </div>
 
           <div className="flex-1 p-6 md:p-8 bg-parchment-texture relative">
             <div className="flex justify-between items-center mb-6 pb-4 border-b border-wood-400/30">
-              <span className="text-xs font-bold text-wood-500 uppercase tracking-widest">
-                {new Date(post.createdAt).toLocaleDateString()} •{' '}
-                {new Date(post.createdAt).toLocaleTimeString()}
+              <span className="text-sm font-bold text-wood-500 uppercase tracking-widest">
+                {headerTimestampText}
               </span>
 
               <div className="flex items-center gap-3">
@@ -151,7 +162,7 @@ export function PostCard({ post, index, canManage, onDelete, onEdit }) {
 
             <div className="mt-12 pt-6 border-t border-wood-400/30">
               <div className="flex items-center justify-between">
-                <div className="text-sm italic text-wood-600 font-serif">"{author.bio}"</div>
+                <div className="text-sm italic text-wood-600 font-serif">"{author.quoto || ''}"</div>
                 <button className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-wood-500 hover:text-gold-700 transition-colors">
                   <Quote size={14} />
                   Quote
