@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import AuthLayout from "../components/AuthLayout";
-import AoeLogo from "../components/AoELogo";
-import FrameCard from "../components/FrameCard";
-import GoogleButton from "../components/GoogleButton";
-import Divider from "../components/Divider";
-import PasswordInput from "../components/PasswordInput";
+import AuthLayout from "../components/auth/AuthLayout";
+import AoeLogo from "../components/auth/AoELogo";
+import FrameCard from "../components/auth/FrameCard";
+import GoogleButton from "../components/auth/GoogleButton";
+import Divider from "../components/auth/Divider";
+import PasswordInput from "../components/auth/PasswordInput";
 
 export default function RegisterPage() {
   const [username, setUsername] = useState("");

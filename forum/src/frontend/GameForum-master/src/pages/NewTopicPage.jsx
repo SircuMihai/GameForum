@@ -1,116 +1,127 @@
-import React, { useContext, useEffect, useMemo, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
-import { ForumLayout } from '../components/ForumLayout'
-import { apiRequest } from '../api'
-import { ArrowLeft, Send, X } from 'lucide-react'
-import { AuthContext } from '../auth/AuthContext'
+import React, { useContext, useEffect, useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { ForumLayout } from "../components/layout/ForumLayout";
+import { apiRequest } from "../api";
+import { ArrowLeft, Send, X } from "lucide-react";
+import { AuthContext } from "../auth/AuthContext";
+import { RichTextEditor } from "../components/newTopic/RichTextEditor";
 
 export function NewTopicPage() {
-  const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const preselectedCategory = searchParams.get('category')
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const preselectedCategory = searchParams.get("category");
 
-  const { token, user, isAuthed } = useContext(AuthContext) || {}
+  const { token, user, isAuthed } = useContext(AuthContext) || {};
 
-  const [categories, setCategories] = useState([])
+  const [categories, setCategories] = useState([]);
 
   useEffect(() => {
-    let canceled = false
-    ;(async () => {
+    let canceled = false;
+    (async () => {
       try {
-        const data = await apiRequest('/api/category')
-        if (canceled) return
+        const data = await apiRequest("/api/category");
+        if (canceled) return;
         const mapped = (data || []).map((c) => ({
           id: String(c.categoryId),
           title: c.categoryName,
-          description: c.categoryDescription || '',
-        }))
-        setCategories(mapped)
+          description: c.categoryDescription || "",
+        }));
+        setCategories(mapped);
       } catch {
-        if (!canceled) setCategories([])
+        if (!canceled) setCategories([]);
       }
-    })()
+    })();
 
     return () => {
-      canceled = true
-    }
-  }, [])
+      canceled = true;
+    };
+  }, []);
 
   const defaultCategoryId = useMemo(() => {
-    if (preselectedCategory) return preselectedCategory
-    return categories[0]?.id || ''
-  }, [preselectedCategory, categories])
+    if (preselectedCategory) return preselectedCategory;
+    return categories[0]?.id || "";
+  }, [preselectedCategory, categories]);
 
   const [formData, setFormData] = useState({
     category: defaultCategoryId,
-    title: '',
-    message: '',
-  })
+    title: "",
+    message: "", // aici păstrăm HTML-ul din Tiptap
+  });
 
   useEffect(() => {
     if (!formData.category && defaultCategoryId) {
-      setFormData((prev) => ({ ...prev, category: defaultCategoryId }))
+      setFormData((prev) => ({ ...prev, category: defaultCategoryId }));
     }
-  }, [defaultCategoryId, formData.category])
+  }, [defaultCategoryId, formData.category]);
 
   const [errors, setErrors] = useState({
-    title: '',
-    message: '',
-  })
+    title: "",
+    message: "",
+  });
+
+  // simplu: scoate tag-urile ca să validăm "text real"
+  const plainText = (html) =>
+    (html || "")
+      .replace(/<[^>]*>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
+
+    const msgText = plainText(formData.message);
 
     const newErrors = {
-      title: formData.title.trim() === '' ? 'A topic title is required' : '',
-      message:
-        formData.message.trim() === '' ? 'Message content is required' : '',
-    }
+      title: formData.title.trim() === "" ? "A topic title is required" : "",
+      message: msgText === "" ? "Message content is required" : "",
+    };
 
-    setErrors(newErrors)
+    setErrors(newErrors);
 
     if (!newErrors.title && !newErrors.message) {
       if (!isAuthed || !user?.userId) {
-        navigate('/login')
-        return
+        navigate("/login");
+        return;
       }
 
       try {
-        const now = new Date().toISOString()
-        const createdSubject = await apiRequest('/api/subject', {
+        const now = new Date().toISOString();
+
+        const createdSubject = await apiRequest("/api/subject", {
           token,
-          method: 'POST',
+          method: "POST",
           body: JSON.stringify({
             subjectName: formData.title,
-            subjectText: formData.message,
+            subjectText: formData.message, // HTML
             subjectPhoto: null,
-            subjectLikes: '0',
+            subjectLikes: "0",
             createdAt: now,
             categoryId: Number(formData.category),
             userId: user.userId,
           }),
-        })
+        });
 
-        await apiRequest('/api/message', {
+        await apiRequest("/api/message", {
           token,
-          method: 'POST',
+          method: "POST",
           body: JSON.stringify({
-            messageText: formData.message,
+            messageText: formData.message, // HTML
             messagesPhoto: null,
-            messageLikes: '0',
+            messageLikes: "0",
             createdAt: now,
             subjectId: createdSubject.subjectId,
             userId: user.userId,
           }),
-        })
+        });
 
-        navigate(`/category/${formData.category}`)
+        navigate(`/category/${formData.category}`);
       } catch {
+        // optional: set error toast
       }
     }
-  }
+  };
 
-  const selectedCategory = categories.find((c) => c.id === formData.category)
+  const selectedCategory = categories.find((c) => c.id === formData.category);
 
   return (
     <ForumLayout>
@@ -193,8 +204,8 @@ export function NewTopicPage() {
                   focus:outline-none transition-colors shadow-inner
                   ${
                     errors.title
-                      ? 'border-red-600 focus:border-red-500'
-                      : 'border-wood-600 focus:border-gold-500'
+                      ? "border-red-600 focus:border-red-500"
+                      : "border-wood-600 focus:border-gold-500"
                   }
                 `}
               />
@@ -212,36 +223,22 @@ export function NewTopicPage() {
                 Message
               </label>
 
-              <div className="relative">
-                <textarea
-                  value={formData.message}
-                  onChange={(e) =>
-                    setFormData({ ...formData, message: e.target.value })
-                  }
-                  placeholder="Write your message here, commander. Share your strategies, ask questions, or start a discussion..."
-                  rows={12}
-                  className={`
-                    w-full bg-parchment-200 border-2 text-wood-900 px-4 py-3 rounded-sm 
-                    font-serif text-lg leading-relaxed placeholder:text-wood-400 placeholder:italic
-                    focus:outline-none transition-colors shadow-inner resize-none
-                    ${
-                      errors.message
-                        ? 'border-red-600 focus:border-red-500'
-                        : 'border-wood-600 focus:border-gold-500'
-                    }
-                  `}
-                  style={{
-                    backgroundImage:
-                      'url("https://www.transparenttextures.com/patterns/old-map.png")',
-                    backgroundBlendMode: 'multiply',
-                  }}
-                />
-
-                <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-wood-500 pointer-events-none" />
-                <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-wood-500 pointer-events-none" />
-                <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-wood-500 pointer-events-none" />
-                <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-wood-500 pointer-events-none" />
-              </div>
+              <RichTextEditor
+                value={formData.message}
+                onChange={(html) =>
+                  setFormData((p) => ({ ...p, message: html }))
+                }
+                error={!!errors.message}
+                uploadImage={async (file) => {
+                  // TODO: aici chemi backend-ul tău și returnezi URL
+                  // exemplu: const res = await apiRequest("/api/upload/image", { token, method:"POST", body: formData })
+                  // return res.url
+                  return null;
+                }}
+                uploadFile={async (file) => {
+                  return null;
+                }}
+              />
 
               {errors.message && (
                 <p className="mt-2 text-sm text-red-400 font-serif flex items-center gap-2">
@@ -311,5 +308,5 @@ export function NewTopicPage() {
         </div>
       </div>
     </ForumLayout>
-  )
+  );
 }

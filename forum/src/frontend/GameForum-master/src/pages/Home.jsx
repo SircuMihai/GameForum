@@ -1,7 +1,7 @@
 import { useContext, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { ForumLayout } from "../components/ForumLayout";
-import { CategoryCard } from "../components/CategoryCard";
+import { ForumLayout } from "../components/layout/ForumLayout";
+import { CategoryCard } from "../components/home/CategoryCard";
 import { apiRequest } from "../api";
 import { AnimatePresence } from "framer-motion";
 import { AuthContext } from "../auth/AuthContext";

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import AuthLayout from "../components/AuthLayout";
-import AoeLogo from "../components/AoELogo";
-import FrameCard from "../components/FrameCard";
+import AuthLayout from "../components/auth/AuthLayout";
+import AoeLogo from "../components/auth/AoELogo";
+import FrameCard from "../components/auth/FrameCard";
 
 export default function ForgotPage() {
   const [email, setEmail] = useState("");

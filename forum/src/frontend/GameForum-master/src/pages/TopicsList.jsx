@@ -1,10 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useContext, useEffect, useMemo, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ForumLayout } from '../components/ForumLayout'
-import { TopicCard } from '../components/TopicCard'
+import { ForumLayout } from '../components/layout/ForumLayout'
+import { TopicCard } from '../components/topicList/TopicCard'
 import { apiRequest } from '../api'
 import { ArrowLeft, PlusCircle } from 'lucide-react'
-import { useContext } from 'react'
 import { AuthContext } from '../auth/AuthContext'
 
 export function TopicsList() {

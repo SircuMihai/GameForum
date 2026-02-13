@@ -1,8 +1,8 @@
 import { useContext, useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { ForumLayout } from '../components/ForumLayout'
-import FrameCard from '../components/FrameCard'
-import { UserBadge } from '../components/UserBadge'
+import { ForumLayout } from '../components/layout/ForumLayout'
+import FrameCard from '../components/auth/FrameCard'
+import { UserBadge } from '../components/threadView/UserBadge'
 import { apiRequest } from '../api'
 import { AuthContext } from '../auth/AuthContext'
 
