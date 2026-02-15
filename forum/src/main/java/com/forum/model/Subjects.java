@@ -36,11 +36,10 @@ public class Subjects {
     @Column(name = "subject_name", nullable = false)
     private String subjectName;
 
-    @Column(name = "subject_text", nullable = false)
+    @Column(name = "subject_text", nullable = false, columnDefinition = "text")
     private String subjectText;
 
-    @Lob
-    @Column(name = "subject_photo")
+    @Column(name = "subject_photo", columnDefinition = "bytea")
     private byte[] subjectPhoto;
 
     @Column(name = "created_at", nullable = false)

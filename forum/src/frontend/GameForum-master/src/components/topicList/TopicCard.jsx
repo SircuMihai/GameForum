@@ -11,12 +11,24 @@ export function TopicCard({
   isEditing,
   editTitle,
   setEditTitle,
+  setEditPhoto,
   onCancelEdit,
   onSaveEdit,
   editSaving,
 }) {
   const authorName = topic?.authorName || topic?.userNickname || 'Unknown'
   const createdAt = topic?.createdAt ? new Date(topic.createdAt) : null
+
+  const photoSrc = (() => {
+    const raw = topic?.subjectPhoto
+    if (!raw) return ''
+    const v = String(raw).trim()
+    if (!v) return ''
+    if (v.startsWith('data:')) return v
+    if (v.startsWith('http://') || v.startsWith('https://')) return v
+    if (v.startsWith('/')) return v
+    return `data:image/png;base64,${v}`
+  })()
 
   const handleDeleteClick = (e) => {
     e.preventDefault()
@@ -65,11 +77,21 @@ export function TopicCard({
             }
           `}
         >
-          <div className="shrink-0 text-wood-600">
-            {topic.isPinned ? (
-              <Pin className="w-5 h-5 text-gold-700 fill-gold-700" />
+          <div className="shrink-0 flex items-center gap-3">
+            {photoSrc ? (
+              <img
+                src={photoSrc}
+                alt=""
+                className="w-12 h-12 rounded-sm object-cover border border-wood-400/40"
+              />
             ) : (
-              <MessageSquare className="w-5 h-5 group-hover:text-gold-700 transition-colors" />
+              <div className="shrink-0 text-wood-600">
+                {topic.isPinned ? (
+                  <Pin className="w-5 h-5 text-gold-700 fill-gold-700" />
+                ) : (
+                  <MessageSquare className="w-5 h-5 group-hover:text-gold-700 transition-colors" />
+                )}
+              </div>
             )}
           </div>
 
@@ -108,6 +130,28 @@ export function TopicCard({
                   className="w-full bg-parchment-100 text-wood-900 font-display font-bold px-3 py-2 rounded-sm border border-wood-400 focus:outline-none focus:border-gold-600"
                   disabled={editSaving}
                 />
+
+                <div className="mt-3">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0]
+                      e.target.value = ''
+                      if (!file || !setEditPhoto) return
+                      const reader = new FileReader()
+                      const dataUrl = await new Promise((resolve, reject) => {
+                        reader.onload = () => resolve(String(reader.result || ''))
+                        reader.onerror = () => reject(new Error('Failed to read file'))
+                        reader.readAsDataURL(file)
+                      })
+                      setEditPhoto(dataUrl)
+                    }}
+                    disabled={editSaving}
+                    className="w-full text-sm text-wood-800 file:mr-4 file:py-2 file:px-4 file:rounded-sm file:border file:border-wood-400 file:bg-parchment-100 file:text-wood-900 hover:file:border-gold-600 disabled:opacity-60"
+                  />
+                </div>
+
                 <div className="flex items-center gap-2 mt-2">
                   <button
                     type="button"

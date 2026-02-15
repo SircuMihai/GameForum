@@ -46,6 +46,7 @@ export function NewTopicPage() {
     category: defaultCategoryId,
     title: "",
     message: "", // aici păstrăm HTML-ul din Tiptap
+    subjectPhoto: null,
   });
 
   useEffect(() => {
@@ -57,7 +58,16 @@ export function NewTopicPage() {
   const [errors, setErrors] = useState({
     title: "",
     message: "",
+    subjectPhoto: "",
   });
+
+  const fileToDataUrl = (file) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ""));
+      reader.onerror = () => reject(new Error("Failed to read file"));
+      reader.readAsDataURL(file);
+    });
 
   // simplu: scoate tag-urile ca să validăm "text real"
   const plainText = (html) =>
@@ -74,6 +84,7 @@ export function NewTopicPage() {
     const newErrors = {
       title: formData.title.trim() === "" ? "A topic title is required" : "",
       message: msgText === "" ? "Message content is required" : "",
+      subjectPhoto: "",
     };
 
     setErrors(newErrors);
@@ -93,7 +104,7 @@ export function NewTopicPage() {
           body: JSON.stringify({
             subjectName: formData.title,
             subjectText: formData.message, // HTML
-            subjectPhoto: null,
+            subjectPhoto: formData.subjectPhoto,
             subjectLikes: "0",
             createdAt: now,
             categoryId: Number(formData.category),
@@ -184,6 +195,25 @@ export function NewTopicPage() {
                   {selectedCategory.description}
                 </p>
               )}
+            </div>
+
+            {/* Subject photo */}
+            <div>
+              <label className="block text-lg font-display font-bold text-parchment-200 mb-3">
+                Topic Photo
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  e.target.value = "";
+                  if (!file) return;
+                  const dataUrl = await fileToDataUrl(file);
+                  setFormData((p) => ({ ...p, subjectPhoto: dataUrl }));
+                }}
+                className="w-full bg-wood-800 text-parchment-200 border border-wood-600 rounded-sm px-3 py-2"
+              />
             </div>
 
             {/* Title */}

@@ -15,12 +15,14 @@ API-urile le gasiti la: C:\Users\mihai\IdeaProjects\GameForum\forum\src\backend\
 
 La prima pornire a containerului Postgres, scripturile SQL din `forum/import` sunt rulate automat (montate in `/docker-entrypoint-initdb.d`).
 
+Cand rulezi `node forum\start-dev.js`, scripturile SQL din `forum/import` sunt incercate automat si dupa ce DB-ul este up.
+
 Daca ai pornit deja DB-ul inainte si vrei sa **reimporti** datele, trebuie sa stergi volumul / datele persistate si sa pornesti din nou DB-ul.
 
 Din folderul `forum` poti face reset la DB astfel:
 
 ```powershell
-docker compose -f compose.yaml down
+docker compose -f compose.yaml down -v
 docker compose -f compose.yaml up -d --force-recreate
 ```
 

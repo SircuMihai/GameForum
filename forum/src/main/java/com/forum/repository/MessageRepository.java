@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -14,6 +15,9 @@ public interface MessageRepository extends JpaRepository<Messages, Integer> {
     long countByUser_UserId(Integer userId);
     long countBySubject_SubjectId(Integer subjectId);
     long countBySubject_Category_CategoryId(Integer categoryId);
+
+    @Transactional
+    void deleteBySubject_SubjectId(Integer subjectId);
 
     @Query("select m.subject.subjectId, count(m) from Messages m where m.subject.subjectId in :subjectIds group by m.subject.subjectId")
     List<Object[]> countBySubjectIds(@Param("subjectIds") List<Integer> subjectIds);

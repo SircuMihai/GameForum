@@ -26,9 +26,12 @@ public class Messages {
     @JoinColumn(name = "user_id", referencedColumnName = "user_id")
     private Users user;
 
-    @Column(name = "message_text", nullable = false)
+    @Column(name = "message_text", columnDefinition = "text", nullable = false)
     private String messageText;
 
     @Column(name = "created_at", nullable = false)
     private String createdAt;
+
+    @Column(name = "messages_photo")
+    private String messagesPhoto;
 }

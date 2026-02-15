@@ -149,7 +149,7 @@ export function PostCard({ post, index, canManage, onDelete, onEdit }) {
 
             <div className="prose prose-stone max-w-none font-serif text-lg text-wood-900 leading-relaxed">
               {!isEditing ? (
-                <p>{post.content}</p>
+                <div dangerouslySetInnerHTML={{ __html: post?.content || '' }} />
               ) : (
                 <textarea
                   value={draft}

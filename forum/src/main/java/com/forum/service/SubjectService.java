@@ -11,8 +11,11 @@ import com.forum.repository.MessageRepository;
 import com.forum.repository.SubjectRepository;
 import com.forum.repository.UserRepository;
 import com.forum.exception.NotFoundException;
+import com.forum.security.HtmlSanitizer;
+import com.forum.dto.request.SetSubjectPhotoRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -94,6 +97,7 @@ public class SubjectService {
 
     public SubjectResponse create(SubjectRequest request) {
         Subjects entity = subjectMapper.toEntity(request);
+        entity.setSubjectText(HtmlSanitizer.sanitize(entity.getSubjectText()));
         if (request.getUserId() != null) {
             Users user = userRepository.findById(request.getUserId())
                     .orElseThrow(() -> new NotFoundException("User not found: " + request.getUserId()));
@@ -119,6 +123,7 @@ public class SubjectService {
         return subjectRepository.findById(id).map(existing -> {
             Subjects toUpdate = subjectMapper.toEntity(request);
             toUpdate.setSubjectId(id);
+            toUpdate.setSubjectText(HtmlSanitizer.sanitize(toUpdate.getSubjectText()));
             if (request.getUserId() != null) {
                 Users user = userRepository.findById(request.getUserId())
                         .orElseThrow(() -> new NotFoundException("User not found: " + request.getUserId()));
@@ -136,7 +141,20 @@ public class SubjectService {
         });
     }
 
+    public Optional<SubjectResponse> updatePhoto(Integer id, SetSubjectPhotoRequest request) {
+        return subjectRepository.findById(id).map(existing -> {
+            String photo = request != null ? request.getSubjectPhoto() : null;
+            existing.setSubjectPhoto(subjectMapper.base64ToBytes(photo));
+            Subjects saved = subjectRepository.save(existing);
+            SubjectResponse resp = subjectMapper.toResponse(saved);
+            resp.setReplyCount(messageRepository.countBySubject_SubjectId(saved.getSubjectId()));
+            return resp;
+        });
+    }
+
+    @Transactional
     public void delete(Integer id) {
+        messageRepository.deleteBySubject_SubjectId(id);
         subjectRepository.deleteById(id);
     }
 }

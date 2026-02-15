@@ -43,8 +43,41 @@ export default function UserProfile() {
   const [loading, setLoading] = useState(false)
   const [savingTitle, setSavingTitle] = useState(false)
   const [savingQuoto, setSavingQuoto] = useState(false)
+  const [savingAvatar, setSavingAvatar] = useState(false)
   const [quotoDraft, setQuotoDraft] = useState('')
   const [error, setError] = useState('')
+
+  const fileToDataUrl = (file) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(String(reader.result || ''))
+      reader.onerror = () => reject(new Error('Failed to read file'))
+      reader.readAsDataURL(file)
+    })
+
+  const onPickAvatar = async (e) => {
+    if (!isOwnProfile || !auth?.token || userId == null) return
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    if (savingAvatar) return
+
+    try {
+      setSavingAvatar(true)
+      setError('')
+      const dataUrl = await fileToDataUrl(file)
+      const updated = await apiRequest(`/api/user/${userId}/avatar`, {
+        method: 'PUT',
+        token: auth.token,
+        body: JSON.stringify({ avatar: dataUrl }),
+      })
+      setProfile(updated)
+    } catch (err) {
+      setError(err?.message || 'Failed to update avatar')
+    } finally {
+      setSavingAvatar(false)
+    }
+  }
 
   const normalizeAchievementPhotoSrc = (value) => {
     if (!value) return ''
@@ -195,6 +228,24 @@ export default function UserProfile() {
                   <div className="text-wood-500 text-xs uppercase tracking-widest font-bold mt-1">
                     {profile.role}
                   </div>
+
+                  {isOwnProfile ? (
+                    <div className="mt-4">
+                      <div className="text-xs text-wood-500 uppercase tracking-widest font-bold mb-2">Avatar</div>
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={onPickAvatar}
+                          disabled={savingAvatar}
+                          className="block w-full text-sm text-parchment-200 file:mr-4 file:py-2 file:px-4 file:rounded-sm file:border file:border-wood-600 file:bg-wood-800 file:text-parchment-200 hover:file:border-gold-500 disabled:opacity-60"
+                        />
+                        {savingAvatar ? (
+                          <span className="text-xs text-wood-500 uppercase tracking-widest font-bold">Saving...</span>
+                        ) : null}
+                      </div>
+                    </div>
+                  ) : null}
 
                   {isAdmin && !isOwnProfile ? (
                     <div className="mt-4">

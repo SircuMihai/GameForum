@@ -3,6 +3,7 @@ package com.forum.controller;
 import com.forum.dto.mapper.UserMapper;
 import com.forum.dto.mapper.AchievementMapper;
 import com.forum.dto.request.SetQuotoRequest;
+import com.forum.dto.request.SetAvatarRequest;
 import com.forum.dto.request.SetTitleRequest;
 import com.forum.service.UserService;
 import com.forum.dto.request.UserRequest;
@@ -112,6 +113,30 @@ public class UserController {
                 .orElseThrow(() -> new NotFoundException("Achievement not found: " + achievementId));
 
         authedUser.setSelectedTitleAchievement(achievement);
+        Users saved = userRepository.save(authedUser);
+        return ResponseEntity.ok(userMapper.toResponse(saved));
+    }
+
+    @PutMapping("/{id}/avatar")
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    public ResponseEntity<UserResponse> setAvatar(
+            @PathVariable Integer id,
+            @RequestBody SetAvatarRequest request,
+            Authentication authentication
+    ) {
+        if (authentication == null || authentication.getName() == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        Users authedUser = userRepository.findByUserEmail(authentication.getName())
+                .orElseThrow(() -> new NotFoundException("User not found: " + authentication.getName()));
+
+        if (!id.equals(authedUser.getUserId())) {
+            throw new AccessDeniedException("You can only change your own avatar");
+        }
+
+        String avatar = request != null ? request.getAvatar() : null;
+        authedUser.setAvatar(userMapper.base64ToBytes(avatar));
         Users saved = userRepository.save(authedUser);
         return ResponseEntity.ok(userMapper.toResponse(saved));
     }

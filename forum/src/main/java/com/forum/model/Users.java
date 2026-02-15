@@ -25,8 +25,7 @@ public class Users {
     @Column(name = "nickname", nullable = false, unique = true)
     private String nickname;
 
-    @Lob
-    @Column(name = "avatar")
+    @Column(name = "avatar", columnDefinition = "bytea")
     private byte[] avatar;
 
     @Column(name = "password", nullable = false)

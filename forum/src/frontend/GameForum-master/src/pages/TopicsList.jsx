@@ -25,7 +25,16 @@ export function TopicsList() {
 
   const [editingId, setEditingId] = useState(null)
   const [editTitle, setEditTitle] = useState('')
+  const [editPhoto, setEditPhoto] = useState(null)
   const [editSaving, setEditSaving] = useState(false)
+
+  const fileToDataUrl = (file) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(String(reader.result || ''))
+      reader.onerror = () => reject(new Error('Failed to read file'))
+      reader.readAsDataURL(file)
+    })
 
   const totalPages = useMemo(() => {
     return Math.max(1, Math.ceil(categoryTopics.length / pageSize))
@@ -59,6 +68,7 @@ export function TopicsList() {
         const mappedTopics = (subjects || []).map((s) => ({
           id: String(s.subjectId),
           title: s.subjectName,
+          subjectPhoto: s.subjectPhoto,
           createdAt: s.createdAt,
           replyCount: s.replyCount ?? 0,
           userNickname: s.userNickname,
@@ -108,11 +118,13 @@ export function TopicsList() {
     if (!isAdmin) return
     setEditingId(String(topic.id))
     setEditTitle(topic.title || '')
+    setEditPhoto(null)
   }
 
   const cancelEdit = () => {
     setEditingId(null)
     setEditTitle('')
+    setEditPhoto(null)
   }
 
   const normalizeSubject = (s) => {
@@ -170,12 +182,21 @@ export function TopicsList() {
         body: JSON.stringify(payload),
       })
 
+      if (editPhoto) {
+        await apiRequest(`/api/subject/${topicId}/photo`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ subjectPhoto: editPhoto }),
+        })
+      }
+
       setCategoryTopics((prev) =>
         prev.map((t) => (t.id === String(topicId) ? { ...t, title: newTitle } : t))
       )
 
       setEditingId(null)
       setEditTitle('')
+      setEditPhoto(null)
     } catch {
       alert('Nu am putut edita topicul.')
     } finally {
@@ -240,6 +261,7 @@ export function TopicsList() {
                 isEditing={String(editingId) === String(topic.id)}
                 editTitle={editTitle}
                 setEditTitle={setEditTitle}
+                setEditPhoto={setEditPhoto}
                 onCancelEdit={cancelEdit}
                 onSaveEdit={saveEdit}
                 editSaving={editSaving}

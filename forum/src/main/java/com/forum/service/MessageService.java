@@ -10,6 +10,7 @@ import com.forum.repository.MessageRepository;
 import com.forum.repository.SubjectRepository;
 import com.forum.repository.UserRepository;
 import com.forum.exception.NotFoundException;
+import com.forum.security.HtmlSanitizer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -53,6 +54,7 @@ public class MessageService {
 
     public MessageResponse create(MessageRequest request) {
         Messages entity = messageMapper.toEntity(request);
+        entity.setMessageText(HtmlSanitizer.sanitize(entity.getMessageText()));
         if (request.getSubjectId() != null) {
             Subjects subject = subjectRepository.findById(request.getSubjectId())
                     .orElseThrow(() -> new NotFoundException("Subject not found: " + request.getSubjectId()));
@@ -76,6 +78,7 @@ public class MessageService {
         return messageRepository.findById(id).map(existing -> {
             Messages toUpdate = messageMapper.toEntity(request);
             toUpdate.setMessageId(id);
+            toUpdate.setMessageText(HtmlSanitizer.sanitize(toUpdate.getMessageText()));
             if (request.getSubjectId() != null) {
                 Subjects subject = subjectRepository.findById(request.getSubjectId())
                         .orElseThrow(() -> new NotFoundException("Subject not found: " + request.getSubjectId()));

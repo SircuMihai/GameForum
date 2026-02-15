@@ -2,6 +2,7 @@ package com.forum.controller;
 
 import com.forum.service.SubjectService;
 import com.forum.dto.request.SubjectRequest;
+import com.forum.dto.request.SetSubjectPhotoRequest;
 import com.forum.dto.response.SubjectResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -56,5 +57,13 @@ public class SubjectController {
         if (subjectService.findById(id).isEmpty()) return ResponseEntity.notFound().build();
         subjectService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/photo")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<SubjectResponse> setPhoto(@PathVariable Integer id, @RequestBody SetSubjectPhotoRequest request) {
+        return subjectService.updatePhoto(id, request)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 }

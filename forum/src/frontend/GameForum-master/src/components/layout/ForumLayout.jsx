@@ -108,15 +108,17 @@ export function ForumLayout({ children }) {
                   </div>
 
                   <div className="w-10 h-10 border border-gold-600 rounded-sm overflow-hidden">
-                    {displayUser.avatarUrl ? (
-                      <img
-                        src={displayUser.avatarUrl}
-                        alt="Avatar"
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-wood-800" />
-                    )}
+                    {(() => {
+                      const raw = displayUser.avatarUrl
+                      if (!raw) return null
+                      const v = String(raw).trim()
+                      if (!v) return null
+                      if (v.startsWith('data:')) return <img src={v} alt="Avatar" className="w-full h-full object-cover" />
+                      if (v.startsWith('http://') || v.startsWith('https://')) return <img src={v} alt="Avatar" className="w-full h-full object-cover" />
+                      if (v.startsWith('/')) return <img src={v} alt="Avatar" className="w-full h-full object-cover" />
+                      return <img src={`data:image/png;base64,${v}`} alt="Avatar" className="w-full h-full object-cover" />
+                    })()}
+                    {!displayUser.avatarUrl && <div className="w-full h-full bg-wood-800" />}
                   </div>
 
                   <button

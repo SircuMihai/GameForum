@@ -5,6 +5,7 @@ import { PostCard } from '../components/threadView/PostCard'
 import { apiRequest } from '../api'
 import { ArrowLeft } from 'lucide-react'
 import { AuthContext } from '../auth/AuthContext'
+import { RichTextEditor } from '../components/newTopic/RichTextEditor'
 
 export function ThreadView() {
   const { id } = useParams()
@@ -25,6 +26,16 @@ export function ThreadView() {
   const [sending, setSending] = useState(false)
   const [loading, setLoading] = useState(true)
 
+  const isEmptyReply = useMemo(() => {
+    const html = String(replyText || '').trim()
+    if (!html) return true
+    const text = html
+      .replace(/<[^>]*>/g, '')
+      .replace(/&nbsp;/gi, ' ')
+      .trim()
+    return !text
+  }, [replyText])
+
   useEffect(() => {
     if (subjectId == null) return
 
@@ -41,6 +52,7 @@ export function ThreadView() {
           createdAt: subject.createdAt,
           userNickname: subject.userNickname,
           categoryId: subject.categoryId,
+          subjectPhoto: subject.subjectPhoto,
         })
 
         const msgs = await apiRequest(`/api/message?subjectId=${subjectId}`)
@@ -77,16 +89,33 @@ export function ThreadView() {
         }
       }
     })()
-
     return () => {
       canceled = true
     }
   }, [subjectId])
 
+  const topicPhotoSrc = (() => {
+    const raw = topic?.subjectPhoto
+    if (!raw) return ''
+    const v = String(raw).trim()
+    if (!v) return ''
+    if (v.startsWith('data:')) return v
+    if (v.startsWith('http://') || v.startsWith('https://')) return v
+    if (v.startsWith('/')) return v
+    return `data:image/png;base64,${v}`
+  })()
+
+  useEffect(() => {
+    try {
+      window.__topicPhotoSrc = topicPhotoSrc
+      window.__topicPhotoRaw = topic?.subjectPhoto ?? null
+    } catch {
+    }
+  }, [topicPhotoSrc, topic?.subjectPhoto])
+
   const handleSendReply = async () => {
     if (!isAuthed || !user?.userId) return
-    const text = replyText.trim()
-    if (!text) return
+    if (isEmptyReply) return
     if (sending) return
 
     try {
@@ -95,15 +124,11 @@ export function ThreadView() {
       const created = await apiRequest('/api/message', {
         method: 'POST',
         body: JSON.stringify({
-          messageText: text,
-          messagesPhoto: null,
-          messageLikes: '0',
-          createdAt: now,
-          subjectId,
+          messageText: replyText,
           userId: user.userId,
+          subjectId,
         }),
       })
-
       setTopicPosts((prev) => [
         ...prev,
         {
@@ -239,6 +264,17 @@ export function ThreadView() {
                 <span>•</span>
                 <span>{new Date(topic.createdAt).toLocaleDateString()}</span>
               </div>
+
+              {topicPhotoSrc ? (
+                <div id="topic-photo" className="mt-5">
+                  <img
+                    src={topicPhotoSrc}
+                    alt=""
+                    id="topic-photo-img"
+                    className="w-full max-w-3xl max-h-[520px] object-contain rounded-sm border border-wood-600"
+                  />
+                </div>
+              ) : null}
             </div>
           </div>
         </div>
@@ -265,22 +301,14 @@ export function ThreadView() {
             Quick Reply
           </h3>
 
-          <textarea
-            value={replyText}
-            onChange={(e) => setReplyText(e.target.value)}
-            disabled={!isAuthed}
-            className="bg-parchment-100 rounded-sm p-4 min-h-37.5 mb-4 shadow-inner-wood w-full text-wood-900 font-serif text-lg leading-relaxed disabled:opacity-60"
-            placeholder={
-              isAuthed
-                ? 'Write your message here, commander...'
-                : 'Log in to reply...'
-            }
-          />
+          <div className={!isAuthed ? 'opacity-60 pointer-events-none' : ''}>
+            <RichTextEditor value={replyText} onChange={setReplyText} />
+          </div>
 
           <div className="flex justify-end">
             <button
               onClick={handleSendReply}
-              disabled={!isAuthed || sending}
+              disabled={!isAuthed || sending || isEmptyReply}
               className="bg-gold-600 text-wood-900 px-8 py-3 rounded-sm font-bold font-display shadow-glow-gold border border-gold-400 hover:bg-gold-500 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
               Send Message

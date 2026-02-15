@@ -8,6 +8,16 @@ export function UserBadge({
   className = '',
   onClick,
 }) {
+  const avatarSrc = (() => {
+    if (!avatarUrl) return ''
+    const v = String(avatarUrl).trim()
+    if (!v) return ''
+    if (v.startsWith('data:')) return v
+    if (v.startsWith('http://') || v.startsWith('https://')) return v
+    if (v.startsWith('/')) return v
+    return `data:image/png;base64,${v}`
+  })()
+
   const getFrameColor = () => {
     switch (role) {
       case 'admin':
@@ -41,9 +51,9 @@ export function UserBadge({
         className={`relative p-1 border-2 rounded-sm bg-wood-800 ${getFrameColor()} transition-transform duration-300 group-hover:scale-105`}
       >
         <div className="relative w-20 h-20 overflow-hidden border border-wood-600 bg-wood-900">
-          {avatarUrl ? (
+          {avatarSrc ? (
             <img
-              src={avatarUrl}
+              src={avatarSrc}
               alt={username}
               className="w-full h-full object-cover"
             />

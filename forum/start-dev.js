@@ -8,6 +8,10 @@ const composePath = path.join(forumDir, 'compose.yaml')
 const frontendDir = path.join(forumDir, 'src', 'frontend', 'GameForum-master')
 const args = new Set(process.argv.slice(2))
 
+const dbServiceName = 'ForumDataBase'
+const dbName = 'ForumDataBase'
+const dbUser = 'admin'
+
 function runShell(commandLine, { cwd } = {}) {
   return new Promise((resolve, reject) => {
     const child = spawn(commandLine, {
@@ -69,6 +73,40 @@ async function dockerComposeUp(composeFile, { cwd } = {}) {
     await runShell(`docker compose ${quoted} up -d`, { cwd })
   } catch (e) {
     await runShell(`docker-compose ${quoted} up -d`, { cwd })
+  }
+}
+
+function getImportSqlFiles(importDir) {
+  try {
+    if (!fs.existsSync(importDir)) return []
+    return fs
+      .readdirSync(importDir, { withFileTypes: true })
+      .filter((e) => e.isFile() && e.name.toLowerCase().endsWith('.sql'))
+      .map((e) => e.name)
+      .sort((a, b) => a.localeCompare(b))
+  } catch {
+    return []
+  }
+}
+
+async function importSqlSeedData() {
+  const importDir = path.join(forumDir, 'import')
+  const files = getImportSqlFiles(importDir)
+  if (files.length === 0) {
+    console.log('No SQL seed files found in forum/import. Skipping import.')
+    return
+  }
+
+  console.log(`Importing seed data from forum/import (${files.length} file(s))...`)
+  for (const fileName of files) {
+    const containerPath = `/docker-entrypoint-initdb.d/${fileName}`
+    const cmd = `docker compose -f "${composePath}" exec -T ${dbServiceName} psql -U ${dbUser} -d ${dbName} -f ${containerPath}`
+    try {
+      console.log(`- Importing ${fileName}...`)
+      await runShell(cmd, { cwd: forumDir })
+    } catch (e) {
+      console.warn(`- Failed to import ${fileName} (continuing).`)
+    }
   }
 }
 
@@ -148,6 +186,8 @@ async function main() {
 
   console.log('Waiting for database on localhost:6000...')
   await waitForPort({ host: '127.0.0.1', port: 6000, timeoutMs: 120_000, intervalMs: 1000 })
+
+  await importSqlSeedData()
 
   console.log('Checking Java (javac)...')
   await ensureJavacAvailable()
