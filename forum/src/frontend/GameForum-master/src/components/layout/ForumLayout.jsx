@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Home, User, Settings, Menu, LogOut } from "lucide-react";
+import { Home, User, Settings, Menu, LogOut, Crown } from "lucide-react";
 import { AuthContext } from "../../auth/AuthContext";
 
 export function ForumLayout({ children }) {
@@ -27,6 +27,10 @@ export function ForumLayout({ children }) {
 
   // user poate fi null => fallback
   const rawUser = auth?.user || null;
+
+  // ✅ ADMIN CHECK (ca în Home)
+  const role = String(rawUser?.role || rawUser?.userRole || "").toUpperCase();
+  const isAdmin = role === "ADMIN" || role === "ROLE_ADMIN";
 
   const displayUser = {
     username: rawUser?.nickname || rawUser?.username || "Commander",
@@ -69,14 +73,36 @@ export function ForumLayout({ children }) {
             </Link>
 
             <nav className="hidden md:flex items-center space-x-1">
-              <NavLink to="/" icon={<Home size={18} />} label="Home City" active={isActive("/")} />
+              <NavLink
+                to="/"
+                icon={<Home size={18} />}
+                label="Home City"
+                active={isActive("/")}
+              />
               <NavLink
                 to={displayUser.userId ? `/user/${displayUser.userId}` : "/login"}
                 icon={<User size={18} />}
                 label="My Profile"
-                active={displayUser.userId ? isActive(`/user/${displayUser.userId}`) : false}
+                active={
+                  displayUser.userId ? isActive(`/user/${displayUser.userId}`) : false
+                }
               />
-              <NavLink to="/options" icon={<Settings size={18} />} label="Options" active={isActive("/options")} />
+              <NavLink
+                to="/options"
+                icon={<Settings size={18} />}
+                label="Options"
+                active={isActive("/options")}
+              />
+
+              {/* ✅ Admin doar dacă e admin */}
+              {isAdmin && (
+                <NavLink
+                  to="/admin"
+                  icon={<Crown size={18} />}
+                  label="Admin"
+                  active={isActive("/admin")}
+                />
+              )}
             </nav>
 
             <button className="md:hidden p-2 text-gold-500">
@@ -109,14 +135,45 @@ export function ForumLayout({ children }) {
 
                   <div className="w-10 h-10 border border-gold-600 rounded-sm overflow-hidden">
                     {(() => {
-                      const raw = displayUser.avatarUrl
-                      if (!raw) return null
-                      const v = String(raw).trim()
-                      if (!v) return null
-                      if (v.startsWith('data:')) return <img src={v} alt="Avatar" className="w-full h-full object-cover" />
-                      if (v.startsWith('http://') || v.startsWith('https://')) return <img src={v} alt="Avatar" className="w-full h-full object-cover" />
-                      if (v.startsWith('/')) return <img src={v} alt="Avatar" className="w-full h-full object-cover" />
-                      return <img src={`data:image/png;base64,${v}`} alt="Avatar" className="w-full h-full object-cover" />
+                      const raw = displayUser.avatarUrl;
+                      if (!raw) return null;
+                      const v = String(raw).trim();
+                      if (!v) return null;
+
+                      if (v.startsWith("data:"))
+                        return (
+                          <img
+                            src={v}
+                            alt="Avatar"
+                            className="w-full h-full object-cover"
+                          />
+                        );
+
+                      if (v.startsWith("http://") || v.startsWith("https://"))
+                        return (
+                          <img
+                            src={v}
+                            alt="Avatar"
+                            className="w-full h-full object-cover"
+                          />
+                        );
+
+                      if (v.startsWith("/"))
+                        return (
+                          <img
+                            src={v}
+                            alt="Avatar"
+                            className="w-full h-full object-cover"
+                          />
+                        );
+
+                      return (
+                        <img
+                          src={`data:image/png;base64,${v}`}
+                          alt="Avatar"
+                          className="w-full h-full object-cover"
+                        />
+                      );
                     })()}
                     {!displayUser.avatarUrl && <div className="w-full h-full bg-wood-800" />}
                   </div>

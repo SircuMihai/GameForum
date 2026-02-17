@@ -4,6 +4,7 @@ import UserProfile from './pages/UserProfile'
 import { TopicsList } from './pages/TopicsList'
 import { ThreadView } from './pages/ThreadView'
 import { NewTopicPage } from './pages/NewTopicPage'
+import AdminPage from './pages/AdminPage'
 
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
@@ -20,6 +21,8 @@ export default function App() {
         <Route path="/topic/:id" element={<ThreadView />} />
         <Route path="/user/:id" element={<UserProfile />} />
         <Route path="/new-topic" element={<NewTopicPage />} />
+        <Route path="/admin" element={<AdminPage />} />
+
 
     </Routes>
   )
