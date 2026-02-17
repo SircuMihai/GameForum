@@ -187,8 +187,6 @@ async function main() {
   console.log('Waiting for database on localhost:6000...')
   await waitForPort({ host: '127.0.0.1', port: 6000, timeoutMs: 120_000, intervalMs: 1000 })
 
-  await importSqlSeedData()
-
   console.log('Checking Java (javac)...')
   await ensureJavacAvailable()
 
@@ -198,6 +196,8 @@ async function main() {
 
   console.log('Waiting for backend on localhost:8080...')
   await waitForPort({ host: '127.0.0.1', port: 8080, timeoutMs: 180_000, intervalMs: 1000 })
+
+  await importSqlSeedData()
 
   if (!fs.existsSync(frontendDir)) {
     throw new Error(`Frontend folder not found at: ${frontendDir}`)

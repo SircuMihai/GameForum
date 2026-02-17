@@ -103,7 +103,7 @@ javac -version
 
 #### **POST /api/auth/register**
 - **Descriere**: Înregistrează un utilizator nou
-- **Request Body**: `UserRequest` (email, password, username, etc.)
+- **Request Body**: `UserRequest` (`userEmail`, `password`, `nickname`, optional `avatar`)
 - **Response**: `UserResponse` cu datele utilizatorului creat
 - **Status**: 201 Created, 400 Bad Request
 
@@ -128,6 +128,8 @@ javac -version
 - **Response**: `List<UserResponse>`
 - **Status**: 200 OK
 
+Nota: endpoint-ul necesita rol **ADMIN**.
+
 #### **GET /api/user/{id}**
 - **Descriere**: Returnează detaliile unui utilizator specific
 - **Response**: `UserResponse`
@@ -145,11 +147,24 @@ javac -version
 - **Response**: `UserResponse` actualizat
 - **Status**: 200 OK, 400 Bad Request, 401 Unauthorized, 403 Forbidden
 
+Nota: poti modifica doar propriul utilizator.
+
+#### **PUT /api/user/{id}/avatar**
+- **Descriere**: Seteaza/actualizeaza avatarul utilizatorului (poza)
+- **Headers**: `Authorization: Bearer <token>`
+- **Request Body**: `SetAvatarRequest` (`avatar` = Base64 sau data URL `data:image/...;base64,...`)
+- **Response**: `UserResponse` actualizat (campul `avatar` este Base64 fara prefix)
+- **Status**: 200 OK, 401 Unauthorized, 403 Forbidden
+
+Nota: poti modifica doar propriul utilizator.
+
 #### **POST /api/user**
 - **Descriere**: Creează un utilizator nou
 - **Request Body**: `UserRequest`
 - **Response**: `UserResponse`
 - **Status**: 201 Created, 400 Bad Request
+
+Nota: endpoint-ul necesita rol **ADMIN**. Pentru signup normal foloseste `POST /api/auth/register`.
 
 #### **PUT /api/user/{id}**
 - **Descriere**: Actualizează datele unui utilizator
@@ -229,6 +244,13 @@ javac -version
 - **Descriere**: Șterge un subiect
 - **Response**: Void (no content)
 - **Status**: 204 No Content, 404 Not Found
+
+#### **PUT /api/subject/{id}/photo**
+- **Descriere**: Seteaza/actualizeaza poza subiectului
+- **Headers**: `Authorization: Bearer <token>`
+- **Request Body**: `SetSubjectPhotoRequest` (`subjectPhoto` = Base64 sau data URL `data:image/...;base64,...`)
+- **Response**: `SubjectResponse` actualizat (campul `subjectPhoto` este Base64 fara prefix)
+- **Status**: 200 OK, 401 Unauthorized, 403 Forbidden
 
 ---
 
@@ -338,4 +360,6 @@ javac -version
 - **Content-Type**: `application/json` pentru toate request-urile POST/PUT
 - **Error Handling**: API-ul returnează coduri HTTP standard (400, 401, 403, 404, 500)
 - **JWT Token**: Valabil 24 de ore, se obține la login
+
+Nota imagini: backend-ul returneaza imaginile ca Base64 (fara prefix). Pe frontend trebuie normalizat ca `data:image/png;base64,<base64>`.
 
