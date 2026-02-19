@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:latest
+    image: postgres:16-alpine
     environment:
       POSTGRES_DB: ForumDataBase
       POSTGRES_USER: admin
