@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { AuthContext } from "./AuthContext";
 import { apiRequest } from "../api";
 
@@ -7,7 +7,7 @@ export default function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(false);
 
-  const normalizeUserId = (value) => {
+  const normalizeUserId = useCallback((value) => {
     if (value == null) return null;
     if (typeof value === "number") return Number.isFinite(value) ? value : null;
 
@@ -15,15 +15,15 @@ export default function AuthProvider({ children }) {
     const cleaned = s.startsWith("u") || s.startsWith("U") ? s.slice(1) : s;
     const n = Number(cleaned);
     return Number.isFinite(n) ? n : null;
-  };
+  }, []);
 
-  const normalizeMe = (me) => {
+  const normalizeMe = useCallback((me) => {
     if (!me || typeof me !== "object") return me;
     if (me.userId == null) return me;
 
     const normalized = normalizeUserId(me.userId);
     return normalized == null ? me : { ...me, userId: normalized };
-  };
+  }, [normalizeUserId]);
 
   const login = (newToken) => {
     localStorage.setItem("token", newToken);
@@ -63,7 +63,7 @@ export default function AuthProvider({ children }) {
     return () => {
       canceled = true;
     };
-  }, [token]);
+  }, [token, normalizeMe]);
 
   return (
     <AuthContext.Provider value={{ token, user, loadingUser, login, logout, isAuthed: !!token }}>

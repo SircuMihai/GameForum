@@ -8,6 +8,8 @@ COPY mvnw.cmd ./mvnw.cmd
 
 COPY src ./src
 
+RUN chmod +x ./mvnw
+
 RUN ./mvnw -DskipTests package
 
 FROM eclipse-temurin:17-jre

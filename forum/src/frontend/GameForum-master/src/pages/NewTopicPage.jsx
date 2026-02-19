@@ -42,17 +42,13 @@ export function NewTopicPage() {
   }, [preselectedCategory, categories]);
 
   const [formData, setFormData] = useState({
-    category: defaultCategoryId,
+    category: "",
     title: "",
     message: "",
     subjectPhoto: null,
   });
 
-  useEffect(() => {
-    if (!formData.category && defaultCategoryId) {
-      setFormData((prev) => ({ ...prev, category: defaultCategoryId }));
-    }
-  }, [defaultCategoryId, formData.category]);
+  const effectiveCategory = formData.category || defaultCategoryId;
 
   const [errors, setErrors] = useState({
     title: "",
@@ -105,7 +101,7 @@ export function NewTopicPage() {
             subjectPhoto: formData.subjectPhoto,
             subjectLikes: "0",
             createdAt: now,
-            categoryId: Number(formData.category),
+            categoryId: Number(effectiveCategory),
             userId: user.userId,
           }),
         });
@@ -123,13 +119,14 @@ export function NewTopicPage() {
           }),
         });
 
-        navigate(`/category/${formData.category}`);
-      } catch {
+        navigate(`/category/${effectiveCategory}`);
+      } catch (err) {
+        console.error(err);
       }
     }
   };
 
-  const selectedCategory = categories.find((c) => c.id === formData.category);
+  const selectedCategory = categories.find((c) => c.id === effectiveCategory);
 
   return (
 
