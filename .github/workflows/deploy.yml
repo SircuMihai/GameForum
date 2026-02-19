@@ -1,0 +1,54 @@
+name: Deploy (VPS)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main", "master"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-vps
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Upload production compose
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "compose.prod.yaml"
+          target: "~/gameforum"
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -e
+            mkdir -p ~/gameforum
+            cd ~/gameforum
+
+            if [ ! -f .env.prod ]; then
+              echo "Missing ~/gameforum/.env.prod on server. Copy .env.prod.example -> .env.prod and fill secrets." >&2
+              exit 1
+            fi
+
+            echo "Logging into GHCR"
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
+
+            echo "Pulling and starting containers"
+            docker compose --env-file .env.prod -f compose.prod.yaml pull
+            docker compose --env-file .env.prod -f compose.prod.yaml up -d
+
+            echo "Done. Status:"
+            docker compose -f compose.prod.yaml ps

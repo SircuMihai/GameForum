@@ -38,6 +38,9 @@ public class UserService {
     @Autowired
     private JwtTokenStore jwtTokenStore;
 
+    @Autowired
+    private com.forum.repository.AchievementsUsersRepository achievementsUsersRepository;
+
     public List<UserResponse> findAll() {
         return userRepository.findAll().stream()
                 .map(userMapper::toResponse)
@@ -102,6 +105,33 @@ public class UserService {
 
     public void delete(Integer id) {
         userRepository.deleteById(id);
+    }
+
+    public void deleteSelf(String email) {
+        Users user = userRepository.findByUserEmail(email)
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.format(ErrorMessages.USER_NOT_FOUND_BY_EMAIL, email)));
+
+        jwtTokenStore.revokeTokensByUsername(user.getUserEmail());
+
+        achievementsUsersRepository.deleteByUsers_UserId(user.getUserId());
+        userRepository.deleteById(user.getUserId());
+    }
+
+    public void changePasswordSelf(String email, String currentPassword, String newPassword) {
+        if (currentPassword == null || currentPassword.isBlank() || newPassword == null || newPassword.isBlank()) {
+            throw new BadRequestException(ErrorMessages.INVALID_REQUEST);
+        }
+
+        Users user = userRepository.findByUserEmail(email)
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.format(ErrorMessages.USER_NOT_FOUND_BY_EMAIL, email)));
+
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new BadRequestException(ErrorMessages.INVALID_REQUEST);
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        jwtTokenStore.revokeTokensByUsername(user.getUserEmail());
     }
 
     public boolean authenticate(String email, String rawPassword) {

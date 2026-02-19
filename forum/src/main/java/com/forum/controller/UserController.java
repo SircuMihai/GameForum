@@ -6,6 +6,7 @@ import com.forum.dto.request.SetQuotoRequest;
 import com.forum.dto.request.SetAvatarRequest;
 import com.forum.dto.request.SetTitleRequest;
 import com.forum.dto.request.SetRoleRequest;
+import com.forum.dto.request.ChangePasswordRequest;
 import com.forum.service.UserService;
 import com.forum.dto.request.UserRequest;
 import com.forum.dto.response.AchievementResponse;
@@ -203,6 +204,27 @@ public class UserController {
         return userService.update(id, request)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/me/password")
+    public ResponseEntity<Void> changePasswordMe(@RequestBody ChangePasswordRequest request, Authentication authentication) {
+        if (authentication == null || authentication.getName() == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        userService.changePasswordSelf(authentication.getName(), request != null ? request.getCurrentPassword() : null,
+                request != null ? request.getNewPassword() : null);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> deleteMe(Authentication authentication) {
+        if (authentication == null || authentication.getName() == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        userService.deleteSelf(authentication.getName());
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")

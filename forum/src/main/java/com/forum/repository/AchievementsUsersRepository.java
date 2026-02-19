@@ -16,4 +16,6 @@ public interface AchievementsUsersRepository extends JpaRepository<AchievementsU
     List<Achievements> findUnlockedAchievementsByUserId(@Param("userId") Integer userId);
 
     boolean existsByUsers_UserIdAndAchievements_AchievementId(Integer userId, Integer achievementId);
+
+    void deleteByUsers_UserId(Integer userId);
 }

@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "master"]
+  pull_request:
+    branches: ["main", "master"]
+
+jobs:
+  backend:
+    name: Backend (Maven)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      - name: Build & test
+        run: |
+          chmod +x forum/mvnw
+          ./forum/mvnw -f forum/pom.xml test
+
+  frontend:
+    name: Frontend (Node)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: forum/src/frontend/GameForum-master/package-lock.json
+
+      - name: Install
+        working-directory: forum/src/frontend/GameForum-master
+        run: npm ci
+
+      - name: Lint
+        working-directory: forum/src/frontend/GameForum-master
+        run: npm run lint
+
+      - name: Build
+        working-directory: forum/src/frontend/GameForum-master
+        run: npm run build
+
+  docker-compose-build:
+    name: Docker Compose (build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build images
+        run: docker compose -f docker-compose.yml build

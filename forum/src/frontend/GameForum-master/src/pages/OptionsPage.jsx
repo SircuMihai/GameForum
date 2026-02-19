@@ -1,10 +1,18 @@
 import React, { useEffect, useState } from 'react'
 import { Volume2, User, Check } from 'lucide-react'
+import { apiRequest } from '../api'
 
 export default function OptionsPage() {
   const [settings, setSettings] = useState({
     music: true,
   })
+
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmNewPassword, setConfirmNewPassword] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
 
   // load setari salvate
   useEffect(() => {
@@ -28,6 +36,73 @@ export default function OptionsPage() {
 
     // anunta layout-ul imediat (fara refresh)
     window.dispatchEvent(new Event('music-settings-changed'))
+  }
+
+  const handleChangePassword = async () => {
+    setError('')
+    setSuccess('')
+
+    if (!currentPassword || !newPassword) {
+      setError('Completeaza parola curenta si parola noua.')
+      return
+    }
+    if (newPassword !== confirmNewPassword) {
+      setError('Parola noua si confirmarea nu coincid.')
+      return
+    }
+
+    try {
+      setBusy(true)
+      await apiRequest('/api/user/me/password', {
+        method: 'PUT',
+        body: JSON.stringify({ currentPassword, newPassword }),
+      })
+
+      localStorage.removeItem('token')
+      localStorage.removeItem('accessToken')
+      localStorage.removeItem('jwt')
+
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmNewPassword('')
+      setSuccess('Parola a fost schimbata. Te rugam sa te autentifici din nou.')
+
+      setTimeout(() => {
+        window.location.href = '/login'
+      }, 800)
+    } catch (e) {
+      setError(e?.message || 'Eroare la schimbarea parolei.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const handleDeleteAccount = async () => {
+    setError('')
+    setSuccess('')
+
+    const ok = window.confirm('Sigur vrei sa stergi contul? Actiunea este ireversibila.')
+    if (!ok) return
+
+    try {
+      setBusy(true)
+      await apiRequest('/api/user/me', {
+        method: 'DELETE',
+      })
+
+      localStorage.removeItem('token')
+      localStorage.removeItem('accessToken')
+      localStorage.removeItem('jwt')
+
+      setSuccess('Contul a fost sters.')
+      setTimeout(() => {
+        window.location.href = '/register'
+      }, 800)
+    } catch (e) {
+      setError(e?.message || 'Eroare la stergerea contului.')
+    } finally {
+      setBusy(false)
+    }
   }
 
   return (
@@ -55,8 +130,52 @@ export default function OptionsPage() {
         {/* Account Settings */}
         <SettingsPanel icon={<User className="w-6 h-6" />} title="Account">
           <div className="space-y-4">
-            <ActionButton label="Change Password" />
-            <ActionButton label="Delete Account" danger />
+            {error ? (
+              <div className="bg-red-900/20 border-2 border-red-700 text-red-300 px-4 py-3 rounded-sm font-serif">
+                {error}
+              </div>
+            ) : null}
+            {success ? (
+              <div className="bg-green-900/20 border-2 border-green-700 text-green-200 px-4 py-3 rounded-sm font-serif">
+                {success}
+              </div>
+            ) : null}
+
+            <div className="grid gap-3">
+              <input
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                placeholder="Current password"
+                className="w-full bg-wood-800 border-2 border-wood-600 text-parchment-200 px-4 py-3 rounded-sm font-serif focus:outline-none focus:border-gold-500"
+              />
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="New password"
+                className="w-full bg-wood-800 border-2 border-wood-600 text-parchment-200 px-4 py-3 rounded-sm font-serif focus:outline-none focus:border-gold-500"
+              />
+              <input
+                type="password"
+                value={confirmNewPassword}
+                onChange={(e) => setConfirmNewPassword(e.target.value)}
+                placeholder="Confirm new password"
+                className="w-full bg-wood-800 border-2 border-wood-600 text-parchment-200 px-4 py-3 rounded-sm font-serif focus:outline-none focus:border-gold-500"
+              />
+            </div>
+
+            <ActionButton
+              label={busy ? 'Working...' : 'Change Password'}
+              onClick={handleChangePassword}
+              disabled={busy}
+            />
+            <ActionButton
+              label={busy ? 'Working...' : 'Delete Account'}
+              danger
+              onClick={handleDeleteAccount}
+              disabled={busy}
+            />
           </div>
         </SettingsPanel>
       </div>
@@ -109,15 +228,17 @@ function SettingToggle({ label, description, checked, onChange }) {
   )
 }
 
-function ActionButton({ label, danger = false }) {
+function ActionButton({ label, danger = false, onClick, disabled = false }) {
   return (
     <button
+      onClick={onClick}
+      disabled={disabled}
       className={`w-full px-6 py-3 rounded-sm font-display font-bold border-2 transition-all
         ${
           danger
             ? 'bg-red-900/20 border-red-700 text-red-400 hover:bg-red-900/40 hover:border-red-600'
             : 'bg-wood-800 border-wood-600 text-parchment-300 hover:border-gold-500 hover:text-gold-400'
-        }`}
+        } ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}
     >
       {label}
     </button>
