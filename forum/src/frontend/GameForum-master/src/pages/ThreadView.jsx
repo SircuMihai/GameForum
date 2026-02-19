@@ -17,6 +17,8 @@ export function ThreadView() {
   const { user, isAuthed } = useContext(AuthContext) || {}
   const role = String(user?.role || user?.userRole || '').toUpperCase()
   const isAdmin = role === 'ADMIN' || role === 'ROLE_ADMIN'
+  const isModerator = role === 'MODERATOR' || role === 'ROLE_MODERATOR'
+  const canModerate = isAuthed && (isAdmin || isModerator)
 
   const [topic, setTopic] = useState(null)
   const [topicPosts, setTopicPosts] = useState([])
@@ -52,6 +54,7 @@ export function ThreadView() {
           userNickname: subject.userNickname,
           categoryId: subject.categoryId,
           subjectPhoto: subject.subjectPhoto,
+          subjectClosed: Boolean(subject.subjectClosed),
         })
 
         const msgs = await apiRequest(`/api/message?subjectId=${subjectId}`)
@@ -113,6 +116,7 @@ export function ThreadView() {
 
   const handleSendReply = async () => {
     if (!isAuthed || !user?.userId) return
+    if (topic?.subjectClosed && !canModerate) return
     if (isEmptyReply) return
     if (sending) return
 
@@ -145,7 +149,7 @@ export function ThreadView() {
   }
 
   const handleDeletePost = async (postId) => {
-    if (!isAuthed || !isAdmin) return
+    if (!canModerate) return
     const ok = window.confirm('Ștergi mesajul?')
     if (!ok) return
 
@@ -172,7 +176,7 @@ export function ThreadView() {
   }
 
   const handleEditPost = async (postId, newText) => {
-    if (!isAuthed || !isAdmin) return
+    if (!canModerate) return
     const text = (newText || '').trim()
     if (!text) return
 
@@ -225,6 +229,27 @@ export function ThreadView() {
     )
   }
 
+  const handleToggleClosed = async () => {
+    if (!canModerate) return
+
+    try {
+      const endpoint = topic?.subjectClosed
+        ? `/api/subject/${subjectId}/open`
+        : `/api/subject/${subjectId}/close`
+      const updated = await apiRequest(endpoint, { method: 'PUT' })
+      setTopic((prev) =>
+        prev
+          ? {
+              ...prev,
+              subjectClosed: Boolean(updated?.subjectClosed),
+            }
+          : prev,
+      )
+    } catch {
+      alert('Nu am putut actualiza starea subiectului.')
+    }
+  }
+
   return (
       <div className="max-w-5xl mx-auto">
         <div className="mb-6">
@@ -254,6 +279,14 @@ export function ThreadView() {
                 </span>
                 <span>•</span>
                 <span>{new Date(topic.createdAt).toLocaleDateString()}</span>
+                {topic?.subjectClosed ? (
+                  <>
+                    <span>•</span>
+                    <span className="text-red-400 font-bold uppercase tracking-wider text-xs">
+                      Closed
+                    </span>
+                  </>
+                ) : null}
               </div>
 
               {topicPhotoSrc ? (
@@ -267,12 +300,28 @@ export function ThreadView() {
                 </div>
               ) : null}
             </div>
+
+            {canModerate ? (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleToggleClosed}
+                  className={`px-4 py-2 rounded-sm font-display font-bold text-xs uppercase tracking-wider border transition-colors ${
+                    topic?.subjectClosed
+                      ? 'bg-green-900/20 border-green-700 text-green-400 hover:bg-green-900/40'
+                      : 'bg-red-900/20 border-red-700 text-red-400 hover:bg-red-900/40'
+                  }`}
+                >
+                  {topic?.subjectClosed ? 'Open Topic' : 'Close Topic'}
+                </button>
+              </div>
+            ) : null}
           </div>
         </div>
 
         <div className="space-y-8">
           {topicPosts.map((post, index) => {
-            const canManage = isAuthed && isAdmin
+            const canManage = canModerate
 
             return (
               <PostCard
@@ -292,14 +341,31 @@ export function ThreadView() {
             Quick Reply
           </h3>
 
-          <div className={!isAuthed ? 'opacity-60 pointer-events-none' : ''}>
+          {topic?.subjectClosed && !canModerate ? (
+            <div className="mb-4 bg-red-900/20 border border-red-700 rounded-sm p-3 text-sm font-display font-bold text-red-400">
+              Subiectul este închis. Doar moderatorii și adminii pot posta.
+            </div>
+          ) : null}
+
+          <div
+            className={
+              !isAuthed || (topic?.subjectClosed && !canModerate)
+                ? 'opacity-60 pointer-events-none'
+                : ''
+            }
+          >
             <RichTextEditor value={replyText} onChange={setReplyText} />
           </div>
 
           <div className="flex justify-end">
             <button
               onClick={handleSendReply}
-              disabled={!isAuthed || sending || isEmptyReply}
+              disabled={
+                !isAuthed ||
+                sending ||
+                isEmptyReply ||
+                (topic?.subjectClosed && !canModerate)
+              }
               className="bg-gold-600 text-wood-900 px-8 py-3 rounded-sm font-bold font-display shadow-glow-gold border border-gold-400 hover:bg-gold-500 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
               Send Message

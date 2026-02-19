@@ -6,20 +6,20 @@ export default function OptionsPage() {
     music: true,
   })
 
+  // load setari salvate
   useEffect(() => {
     const musicEnabled = localStorage.getItem('musicEnabled')
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSettings((prev) => ({
       ...prev,
       music: musicEnabled === null ? prev.music : musicEnabled === 'true',
     }))
   }, [])
 
-  const toggleSetting = (key) => {
+  const toggleMusic = () => {
     setSettings((prev) => ({
       ...prev,
-      [key]: !prev[key],
+      music: !prev.music,
     }))
   }
 
@@ -48,7 +48,7 @@ export default function OptionsPage() {
             label="Background Music"
             description="Play ambient Age of Empires III music"
             checked={settings.music}
-            onChange={() => toggleSetting('music')}
+            onChange={toggleMusic}
           />
         </SettingsPanel>
 
@@ -80,9 +80,7 @@ function SettingsPanel({ icon, title, children }) {
     <div className="bg-wood-900/90 border-2 border-wood-600 rounded-sm overflow-hidden">
       <div className="bg-wood-800 border-b border-gold-700 px-6 py-4 flex items-center gap-3">
         <div className="text-gold-500">{icon}</div>
-        <h2 className="text-2xl font-display font-bold text-parchment-100">
-          {title}
-        </h2>
+        <h2 className="text-2xl font-display font-bold text-parchment-100">{title}</h2>
       </div>
       <div className="p-6 space-y-6">{children}</div>
     </div>
@@ -93,12 +91,8 @@ function SettingToggle({ label, description, checked, onChange }) {
   return (
     <div className="flex items-center justify-between">
       <div className="grow">
-        <h3 className="text-lg font-display font-bold text-parchment-200">
-          {label}
-        </h3>
-        <p className="text-sm text-parchment-400 font-serif mt-1">
-          {description}
-        </p>
+        <h3 className="text-lg font-display font-bold text-parchment-200">{label}</h3>
+        <p className="text-sm text-parchment-400 font-serif mt-1">{description}</p>
       </div>
 
       <button

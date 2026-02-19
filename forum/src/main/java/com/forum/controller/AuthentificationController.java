@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -65,9 +66,20 @@ public class AuthentificationController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
         try {
+            if (request == null || request.getEmail() == null || request.getEmail().isBlank()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new LoginResponse(false, null));
+            }
+
             UserAuthView user = userRepository.findAuthViewByUserEmail(request.getEmail()).orElse(null);
             if (user == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new LoginResponse(false, null));
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(new LoginResponse(false, null));
+            }
+
+            if (user.isBanned()) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(new LoginResponse(false, null));
             }
 
             authenticationManager.authenticate(
@@ -93,7 +105,11 @@ public class AuthentificationController {
 
             return ResponseEntity.ok(new LoginResponse(true, token));
         } catch (BadCredentialsException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new LoginResponse(false, null));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new LoginResponse(false, null));
+        } catch (DisabledException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new LoginResponse(false, null));
         }
     }
 

@@ -1,5 +1,6 @@
 package com.forum.security;
 
+import com.forum.exception.ErrorMessages;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -18,6 +19,12 @@ public class JwtAccessDeniedHandler implements AccessDeniedHandler {
             throws IOException, ServletException {
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.getWriter().write("{\"error\":\"Forbidden\",\"message\":\"" + accessDeniedException.getMessage() + "\"}");
+        String message = accessDeniedException.getMessage() != null && !accessDeniedException.getMessage().isEmpty()
+                ? accessDeniedException.getMessage()
+                : ErrorMessages.ACCESS_DENIED;
+        response.getWriter().write(String.format(
+                "{\"error\":\"Forbidden\",\"message\":\"%s\",\"status\":403}",
+                message.replace("\"", "\\\"")
+        ));
     }
 }

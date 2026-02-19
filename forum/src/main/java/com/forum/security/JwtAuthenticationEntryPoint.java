@@ -1,5 +1,6 @@
 package com.forum.security;
 
+import com.forum.exception.ErrorMessages;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -18,6 +19,10 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
             throws IOException, ServletException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.getWriter().write("{\"error\":\"Unauthorized\",\"message\":\"" + authException.getMessage() + "\"}");
+        String message = ErrorMessages.AUTHENTICATION_REQUIRED;
+        response.getWriter().write(String.format(
+                "{\"error\":\"Unauthorized\",\"message\":\"%s\",\"status\":401}",
+                message.replace("\"", "\\\"")
+        ));
     }
 }

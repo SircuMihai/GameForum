@@ -23,7 +23,9 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         UserAuthView user = userRepository.findAuthViewByUserEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+                .orElseThrow(() -> new UsernameNotFoundException(
+                        com.forum.exception.ErrorMessages.format(
+                                com.forum.exception.ErrorMessages.USER_NOT_FOUND_BY_EMAIL, email)));
 
         Collection<GrantedAuthority> authorities = new ArrayList<>();
         String role = user.getRole() != null ? user.getRole() : "USER";
@@ -33,6 +35,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .username(user.getUserEmail())
                 .password(user.getPassword())
                 .authorities(authorities)
+                .disabled(user.isBanned())
                 .build();
     }
 }

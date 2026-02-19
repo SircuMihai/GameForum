@@ -139,9 +139,16 @@ public class AchievementsAwardService {
         awardIfAccountOldEnough(userId);
     }
 
+    public void onRoleChanged(Integer userId) {
+        if (userId == null) return;
+        awardIfAdmin(userId);
+    }
+
     private void awardIfAdmin(Integer userId) {
         Users u = userRepository.findById(userId).orElse(null);
-        if (u != null && u.getRole() != null && u.getRole().equalsIgnoreCase("ADMIN")) {
+        if (u != null
+                && u.getRole() != null
+                && (u.getRole().equalsIgnoreCase("ADMIN") || u.getRole().equalsIgnoreCase("MODERATOR"))) {
             award(userId, ACH_IMPERIAL_ADVISOR_ADMIN);
         }
     }

@@ -32,7 +32,11 @@ export default function LoginPage() {
       const data = await resp.json().catch(() => ({}));
 
       if (!resp.ok || data?.authenticated === false) {
-        setError(data?.message || "Invalid credentials");
+        if (resp.status === 403) {
+          setError("Cont banat");
+        } else {
+          setError(data?.message || "Invalid credentials");
+        }
         return;
       }
 

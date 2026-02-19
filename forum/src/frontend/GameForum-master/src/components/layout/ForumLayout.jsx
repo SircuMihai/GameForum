@@ -11,9 +11,8 @@ export function ForumLayout() {
   const auth = useContext(AuthContext);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // 🎵 music
   const audioRef = useRef(null);
-  const [musicReady, setMusicReady] = useState(false);
+  const [, setMusicReady] = useState(false);
 
   const applyMusicSetting = () => {
     const a = audioRef.current;
@@ -31,7 +30,6 @@ export function ForumLayout() {
 
     a.volume = 0.3;
 
-    // porneste doar daca user a interactionat (browser policy)
     a.play()
       .then(() => setMusicReady(true))
       .catch(() => {});
@@ -40,14 +38,12 @@ export function ForumLayout() {
   useEffect(() => {
     const tryPlayAfterInteraction = () => applyMusicSetting();
 
-    // aplica la load
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     applyMusicSetting();
 
-    // porneste dupa prima interactiune
     window.addEventListener("pointerdown", tryPlayAfterInteraction, { once: true });
     window.addEventListener("keydown", tryPlayAfterInteraction, { once: true });
 
-    // cand apesi Save in Options
     window.addEventListener("music-settings-changed", applyMusicSetting);
 
     return () => {
@@ -55,7 +51,7 @@ export function ForumLayout() {
       window.removeEventListener("keydown", tryPlayAfterInteraction);
       window.removeEventListener("music-settings-changed", applyMusicSetting);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   const normalizeUserId = (value) => {
@@ -272,7 +268,6 @@ export function ForumLayout() {
         <div className="h-1 w-full bg-wood-800 border-t border-wood-700" />
       </header>
 
-      {/* 🎵 Background Music */}
       <audio ref={audioRef} loop preload="auto">
         <source src="/aoe3.mp3" type="audio/mpeg" />
       </audio>
