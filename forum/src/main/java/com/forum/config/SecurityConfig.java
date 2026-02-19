@@ -59,9 +59,12 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers(HttpMethod.HEAD, "/api/category/**", "/api/subject/**", "/api/message/**", "/api/achievement/**").permitAll()
+                        .requestMatchers(HttpMethod.HEAD, "/api/user/*", "/api/user/*/titles", "/api/user/*/achievements", "/api/stats/**").permitAll()
                         .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/me").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/category/**", "/api/subject/**", "/api/message/**", "/api/achievement/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/user/*", "/api/user/*/titles", "/api/user/*/achievements", "/api/stats/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/images/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex
