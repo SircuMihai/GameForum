@@ -6,7 +6,7 @@ create table category
     category_icon_name   varchar(255),
     category_name        varchar(255) not null
         unique,
-    category_photo       oid
+    category_photo       varchar(1024)
 );
 
 alter table category

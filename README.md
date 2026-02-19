@@ -3,35 +3,57 @@ Repositoriu pentru practica la USM
 
 API-urile le gasiti la: C:\Users\mihai\IdeaProjects\GameForum\forum\src\backend\java\com\forum\controller
 
-## Rulare (Windows)
+## Pornire pentru utilizarea finala (recomandat)
+
+Aceasta metoda este recomandata pentru utilizarea aplicatiei (cat mai aproape de productie).
+
+Prerechizite:
+
+- **Docker Desktop** (pornit)
+
+Din radacina proiectului (`GameForum`) ruleaza:
+
+```powershell
+docker compose up -d --build
+```
+
+Aplicatia va porni:
+
+- **Frontend**: http://localhost:5173
+- **Backend**: http://localhost:8080
+- **DB (Postgres)**: intern (nu e expus pe host)
+
+Oprire:
+
+```powershell
+docker compose down
+```
+
+Loguri (debug):
+
+```powershell
+docker compose logs -f backend
+docker compose logs -f frontend
+docker compose logs -f db
+```
+
+Reset complet DB (sterge volumul):
+
+```powershell
+docker compose down -v
+```
+
+### Date initiale (seed DB)
+
+La pornirea backend-ului, datele initiale sunt inserate automat (idempotent) din `forum/src/main/resources/db/seed`.
+
+## Rulare (Windows) - pentru dezvoltare/testare functionalitati
 
 ### Prerechizite
 
 - **Docker Desktop** (pornit)
 - **Node.js + npm**
 - **Java 17 JDK** (nu JRE)
-
-### Import date initiale (DB)
-
-La prima pornire a containerului Postgres, scripturile SQL din `forum/import` sunt rulate automat (montate in `/docker-entrypoint-initdb.d`).
-
-Cand rulezi `node forum\start-dev.js`, scripturile SQL din `forum/import` sunt incercate automat si dupa ce DB-ul este up.
-
-Daca ai pornit deja DB-ul inainte si vrei sa **reimporti** datele, trebuie sa stergi volumul / datele persistate si sa pornesti din nou DB-ul.
-
-Din folderul `forum` poti face reset la DB astfel:
-
-```powershell
-docker compose -f compose.yaml down -v
-docker compose -f compose.yaml up -d --force-recreate
-```
-
-Verificare rapida (tot din `forum`):
-
-```powershell
-docker compose -f compose.yaml exec -T ForumDataBase psql -U admin -d ForumDataBase -c "select count(*) from achievements;"
-docker compose -f compose.yaml exec -T ForumDataBase psql -U admin -d ForumDataBase -c "select count(*) from users;"
-```
 
 ### Pornire automata (DB + Backend + Frontend)
 
@@ -55,7 +77,7 @@ Scriptul va:
 
 ### Porturi folosite
 
-- **DB (Postgres)**: `localhost:6000`
+- **DB (Postgres)**: intern (nu e expus pe host)
 - **Backend**: `http://localhost:8080`
 - **Frontend (Vite)**: afisat in consola (de obicei `http://localhost:5173`)
 
@@ -78,6 +100,75 @@ mvnw.cmd spring-boot:run
 ```powershell
 npm install
 npm run dev
+```
+
+## Minikube/Kubernetes (prod-like)
+
+Prerechizite:
+
+- **kubectl**
+- **minikube**
+
+### Pornire (Ingress - recomandat)
+
+1) Porneste minikube si activeaza Ingress:
+
+```powershell
+minikube start
+minikube addons enable ingress
+```
+
+2) Build imaginile direct in minikube (astfel nu ai nevoie de registry):
+
+```powershell
+minikube image build -t gameforum-backend:latest -f forum/Dockerfile forum
+minikube image build -t gameforum-frontend:latest -f forum/src/frontend/GameForum-master/Dockerfile forum/src/frontend/GameForum-master
+```
+
+3) Aplica manifestele:
+
+```powershell
+kubectl apply -f k8s/
+```
+
+4) Mapare domeniu local (Windows):
+
+- afla IP-ul:
+
+```powershell
+minikube ip
+```
+
+- adauga in `C:\Windows\System32\drivers\etc\hosts`:
+
+```
+<MINIKUBE_IP> gameforum.local
+```
+
+5) Acces:
+
+- `http://gameforum.local`
+
+### Pornire (NodePort - alternativa)
+
+Dupa `kubectl apply -f k8s/`:
+
+```powershell
+minikube ip
+```
+
+- **Frontend**: `http://<MINIKUBE_IP>:30080`
+- **Backend**: `http://<MINIKUBE_IP>:30081`
+
+### Debug / troubleshooting
+
+```powershell
+kubectl get pods
+kubectl get svc
+kubectl get ingress
+kubectl describe ingress gameforum
+kubectl logs -l app=backend --tail=200
+kubectl logs -l app=db --tail=200
 ```
 
 ## Troubleshooting

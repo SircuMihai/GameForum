@@ -1,6 +1,6 @@
 // src/api.js
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
-// ^ pune ce ai tu dacă api e pe alt host/port
+const BASE_URL = import.meta.env.VITE_API_URL || "";
+// ^ in dev poți seta VITE_API_URL=http://localhost:8080, iar in production (nginx proxy) rămâne same-origin
 
 function getToken() {
   return (
