@@ -13,6 +13,8 @@ export function TopicsList() {
   const { user } = useContext(AuthContext) || {}
   const role = String(user?.role || user?.userRole || '').toUpperCase()
   const isAdmin = role === 'ADMIN' || role === 'ROLE_ADMIN'
+  const isModerator = role === 'MODERATOR' || role === 'ROLE_MODERATOR'
+  const canManage = isAdmin || isModerator
 
   const categoryId = useMemo(() => {
     const n = Number(id)
@@ -102,7 +104,7 @@ export function TopicsList() {
   }, [totalPages])
 
   const handleDeleteTopic = async (topicId) => {
-    if (!isAdmin) return
+    if (!canManage) return
     const ok = window.confirm('Ștergi topicul?')
     if (!ok) return
     try {
@@ -115,7 +117,7 @@ export function TopicsList() {
   }
 
   const startEdit = (topic) => {
-    if (!isAdmin) return
+    if (!canManage) return
     setEditingId(String(topic.id))
     setEditTitle(topic.title || '')
     setEditPhoto(null)
@@ -255,7 +257,7 @@ export function TopicsList() {
                 key={topic.id}
                 topic={topic}
                 index={index}
-                canManage={isAdmin}
+                canManage={canManage}
                 onDelete={handleDeleteTopic}
                 onStartEdit={startEdit}
                 isEditing={String(editingId) === String(topic.id)}

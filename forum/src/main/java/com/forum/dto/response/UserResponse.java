@@ -13,6 +13,7 @@ public class UserResponse {
     private String avatar;
     private String userEmail;
     private String role;
+    private boolean banned;
     private Integer selectedTitleAchievementId;
     private String selectedTitleName;
     private String lastLogin;

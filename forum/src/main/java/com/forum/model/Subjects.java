@@ -42,6 +42,9 @@ public class Subjects {
     @Column(name = "subject_photo", columnDefinition = "bytea")
     private byte[] subjectPhoto;
 
+    @Column(name = "subject_closed", nullable = false, columnDefinition = "boolean default false")
+    private boolean subjectClosed = false;
+
     @Column(name = "created_at", nullable = false)
     private String createdAt;
 

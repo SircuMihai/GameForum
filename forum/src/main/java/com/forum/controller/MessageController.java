@@ -36,14 +36,14 @@ public class MessageController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @PreAuthorize("hasAnyRole('USER','ADMIN','MODERATOR')")
     public ResponseEntity<MessageResponse> create(@RequestBody MessageRequest request) {
         MessageResponse created = messageService.create(request);
         return ResponseEntity.created(URI.create("/api/message/" + created.getMessageId())).body(created);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','MODERATOR')")
     public ResponseEntity<MessageResponse> update(@PathVariable Integer id, @RequestBody MessageRequest request) {
         return messageService.update(id, request)
                 .map(ResponseEntity::ok)
@@ -51,7 +51,7 @@ public class MessageController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','MODERATOR')")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
         if (messageService.findById(id).isEmpty()) return ResponseEntity.notFound().build();
         messageService.delete(id);

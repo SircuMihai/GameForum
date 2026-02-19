@@ -1,7 +1,8 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ForumLayout } from '../components/layout/ForumLayout'
-import { users as initialUsers } from '../data/mockData'
+import { apiRequest } from '../api'
+import { useAuth } from '../auth/useAuth'
 import { AnimatePresence } from 'framer-motion'
 import {
   X,
@@ -43,7 +44,10 @@ const ROLE_COLORS = {
 }
 
 export default function AdminPage() {
-  const [userList, setUserList] = useState(Object.values(initialUsers))
+  const auth = useAuth()
+  const [userList, setUserList] = useState([])
+  const [loadingUsers, setLoadingUsers] = useState(false)
+  const [usersError, setUsersError] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
   const [sortField, setSortField] = useState('username')
@@ -51,8 +55,52 @@ export default function AdminPage() {
 
   const [deleteUserConfirm, setDeleteUserConfirm] = useState(null)
   const [roleChangeUser, setRoleChangeUser] = useState(null)
+  const [roleMenuPlacement, setRoleMenuPlacement] = useState({})
   const [userDetailId, setUserDetailId] = useState(null)
   const [selectedUsers, setSelectedUsers] = useState(new Set())
+
+  useEffect(() => {
+    let canceled = false
+
+    ;(async () => {
+      try {
+        setLoadingUsers(true)
+        setUsersError('')
+
+        const data = await apiRequest('/api/user', { token: auth?.token })
+        const list = Array.isArray(data) ? data : []
+
+        const mapped = list.map((u) => {
+          const role = String(u?.role || 'USER').toLowerCase()
+          const banned = Boolean(u?.banned)
+          return {
+            id: u?.userId,
+            username: u?.nickname || u?.username || 'Unknown',
+            email: u?.userEmail || u?.email || '',
+            role,
+            status: banned ? 'banned' : 'active',
+            joinDate: u?.createdAt || '',
+            postCount: 0,
+            likes: 0,
+            bio: u?.quoto || '',
+          }
+        })
+
+        if (!canceled) setUserList(mapped)
+      } catch (e) {
+        if (!canceled) {
+          setUsersError(e?.message || 'Failed to load users')
+          setUserList([])
+        }
+      } finally {
+        if (!canceled) setLoadingUsers(false)
+      }
+    })()
+
+    return () => {
+      canceled = true
+    }
+  }, [auth?.token])
 
   const filteredUsers = useMemo(() => {
     let result = [...userList]
@@ -95,34 +143,84 @@ export default function AdminPage() {
     ? userList.find((u) => u.id === userDetailId)
     : null
 
-  const handleDeleteUser = (id) => {
-    setUserList((prev) => prev.filter((u) => u.id !== id))
-    setDeleteUserConfirm(null)
-    setSelectedUsers((prev) => {
-      const next = new Set(prev)
-      next.delete(id)
+  const handleDeleteUser = async (id) => {
+    try {
+      await apiRequest(`/api/user/${id}`, {
+        method: 'DELETE',
+        token: auth?.token,
+      })
+      setUserList((prev) => prev.filter((u) => u.id !== id))
+    } finally {
+      setDeleteUserConfirm(null)
+      setSelectedUsers((prev) => {
+        const next = new Set(prev)
+        next.delete(id)
+        return next
+      })
+    }
+  }
+
+  const handleToggleBan = async (id) => {
+    const current = userList.find((u) => u.id === id)
+    if (!current) return
+
+    const shouldBan = current.status !== 'banned'
+    const endpoint = shouldBan ? `/api/user/${id}/ban` : `/api/user/${id}/unban`
+
+    try {
+      const updated = await apiRequest(endpoint, {
+        method: 'PUT',
+        token: auth?.token,
+      })
+
+      setUserList((prev) =>
+        prev.map((u) =>
+          u.id === id
+            ? {
+                ...u,
+                status: Boolean(updated?.banned) ? 'banned' : 'active',
+              }
+            : u,
+        ),
+      )
+    } catch (e) {
+      alert(e?.message || 'Nu am putut actualiza ban-ul utilizatorului.')
+    }
+  }
+
+  const handleChangeRole = async (id, newRole) => {
+    const normalized = String(newRole || '').toUpperCase()
+    try {
+      await apiRequest(`/api/user/${id}/role`, {
+        method: 'PUT',
+        token: auth?.token,
+        body: JSON.stringify({ role: normalized }),
+      })
+      setUserList((prev) =>
+        prev.map((u) =>
+          u.id === id ? { ...u, role: String(newRole || '').toLowerCase() } : u,
+        ),
+      )
+    } finally {
+      setRoleChangeUser(null)
+    }
+  }
+
+  const handleToggleRoleMenu = (userId, clickTarget) => {
+    setRoleChangeUser((prev) => {
+      const next = prev === userId ? null : userId
+      if (next && clickTarget && typeof window !== 'undefined') {
+        const rect = clickTarget.getBoundingClientRect()
+        const menuHeight = 140
+        const spaceBelow = window.innerHeight - rect.bottom
+        const openUp = spaceBelow < menuHeight && rect.top > menuHeight
+        setRoleMenuPlacement((p) => ({
+          ...p,
+          [userId]: openUp ? 'up' : 'down',
+        }))
+      }
       return next
     })
-  }
-
-  const handleToggleBan = (id) => {
-    setUserList((prev) =>
-      prev.map((u) =>
-        u.id === id
-          ? {
-              ...u,
-              status: u.status === 'active' ? 'banned' : 'active',
-            }
-          : u,
-      ),
-    )
-  }
-
-  const handleChangeRole = (id, newRole) => {
-    setUserList((prev) =>
-      prev.map((u) => (u.id === id ? { ...u, role: newRole } : u)),
-    )
-    setRoleChangeUser(null)
   }
 
   const handleSort = (field) => {
@@ -149,13 +247,27 @@ export default function AdminPage() {
     })
   }
 
-  const handleBulkBan = () => {
-    setUserList((prev) =>
-      prev.map((u) =>
-        selectedUsers.has(u.id) ? { ...u, status: 'banned' } : u,
-      ),
-    )
-    setSelectedUsers(new Set())
+  const handleBulkBan = async () => {
+    const ids = Array.from(selectedUsers)
+    if (ids.length === 0) return
+
+    try {
+      await Promise.all(
+        ids.map((id) =>
+          apiRequest(`/api/user/${id}/ban`, {
+            method: 'PUT',
+            token: auth?.token,
+          }),
+        ),
+      )
+
+      setUserList((prev) =>
+        prev.map((u) => (selectedUsers.has(u.id) ? { ...u, status: 'banned' } : u)),
+      )
+      setSelectedUsers(new Set())
+    } catch (e) {
+      alert(e?.message || 'Nu am putut bana utilizatorii selectați.')
+    }
   }
 
   const handleBulkDelete = () => {
@@ -178,6 +290,12 @@ export default function AdminPage() {
               Administration
             </span>
           </div>
+
+        {usersError && (
+          <div className="mb-4 bg-red-900/20 border border-red-700 rounded-sm p-3 text-sm font-display font-bold text-red-400">
+            {usersError}
+          </div>
+        )}
           <h1 className="text-4xl md:text-5xl font-display font-bold text-gold-400 text-shadow-black mb-3">
             Subject Registry
           </h1>
@@ -301,7 +419,7 @@ export default function AdminPage() {
           )}
         </AnimatePresence>
 
-        <div className="bg-wood-900/90 border-2 border-wood-600 rounded-sm overflow-hidden">
+        <div className="bg-wood-900/90 border-2 border-wood-600 rounded-sm">
           <div className="hidden md:grid grid-cols-10 gap-3 px-5 py-3 bg-wood-800 border-b border-gold-700 text-xs font-bold text-wood-400 uppercase tracking-widest items-center">
             <div className="col-span-1 flex items-center">
               <input
@@ -338,8 +456,14 @@ export default function AdminPage() {
             <div className="col-span-3 text-parchment-300 text-right">Actions</div>
           </div>
 
-          <AnimatePresence>
-            {filteredUsers.map((user) => {
+          {loadingUsers ? (
+            <div className="text-center py-16">
+              <Activity size={32} className="mx-auto text-wood-600 mb-3" />
+              <p className="text-parchment-400 font-serif italic">Loading users...</p>
+            </div>
+          ) : (
+            <AnimatePresence>
+              {filteredUsers.map((user) => {
               const roleStyle = ROLE_COLORS[user.role] || ROLE_COLORS.user
               const initial = user.username.charAt(0).toUpperCase()
 
@@ -387,11 +511,7 @@ export default function AdminPage() {
 
                   <div className="col-span-2 relative">
                     <button
-                      onClick={() =>
-                        setRoleChangeUser(
-                          roleChangeUser === user.id ? null : user.id,
-                        )
-                      }
+                      onClick={(e) => handleToggleRoleMenu(user.id, e.currentTarget)}
                       className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-sm text-xs font-display font-bold uppercase tracking-wider border ${roleStyle.bg} ${roleStyle.text} ${roleStyle.border} hover:brightness-110 transition-all`}
                     >
                       {user.role === 'admin' ? (
@@ -407,7 +527,13 @@ export default function AdminPage() {
 
                     <AnimatePresence>
                       {roleChangeUser === user.id && (
-                        <div className="absolute top-full left-0 mt-1 bg-wood-900 border-2 border-gold-600 rounded-sm shadow-2xl z-50 overflow-hidden w-40">
+                        <div
+                          className={`absolute left-0 bg-wood-900 border-2 border-gold-600 rounded-sm shadow-2xl z-50 overflow-hidden w-40 ${
+                            roleMenuPlacement[user.id] === 'up'
+                              ? 'bottom-full mb-1'
+                              : 'top-full mt-1'
+                          }`}
+                        >
                           {['user', 'moderator', 'admin'].map((r) => (
                             <button
                               key={r}
@@ -496,10 +622,11 @@ export default function AdminPage() {
                   </div>
                 </div>
               )
-            })}
-          </AnimatePresence>
+              })}
+            </AnimatePresence>
+          )}
 
-          {filteredUsers.length === 0 && (
+          {!loadingUsers && filteredUsers.length === 0 && (
             <div className="text-center py-16">
               <Search size={32} className="mx-auto text-wood-600 mb-3" />
               <p className="text-parchment-400 font-serif italic">

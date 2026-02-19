@@ -34,7 +34,11 @@ export default function LoginPage() {
       const data = await resp.json().catch(() => ({}));
 
       if (!resp.ok || data?.authenticated === false) {
-        setError(data?.message || "Invalid credentials");
+        if (resp.status === 403) {
+          setError("Cont banat");
+        } else {
+          setError(data?.message || "Invalid credentials");
+        }
         return;
       }
 
@@ -114,13 +118,6 @@ export default function LoginPage() {
               />
               <span className="text-xs uppercase tracking-wide">Remember me</span>
             </label>
-
-            <Link
-              to="/forgot"
-              className="text-amber-400 hover:text-amber-300 transition-colors text-xs uppercase tracking-wide font-semibold"
-            >
-              Forgot password?
-            </Link>
           </div>
 
           <button

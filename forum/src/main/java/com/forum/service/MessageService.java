@@ -10,10 +10,13 @@ import com.forum.repository.MessageRepository;
 import com.forum.repository.SubjectRepository;
 import com.forum.repository.UserRepository;
 import com.forum.exception.NotFoundException;
+import com.forum.exception.ErrorMessages;
 import com.forum.security.HtmlSanitizer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -55,14 +58,24 @@ public class MessageService {
     public MessageResponse create(MessageRequest request) {
         Messages entity = messageMapper.toEntity(request);
         entity.setMessageText(HtmlSanitizer.sanitize(entity.getMessageText()));
+
+        if (entity.getCreatedAt() == null || entity.getCreatedAt().trim().isEmpty()) {
+            entity.setCreatedAt(OffsetDateTime.now().toString());
+        }
+
         if (request.getSubjectId() != null) {
             Subjects subject = subjectRepository.findById(request.getSubjectId())
-                    .orElseThrow(() -> new NotFoundException("Subject not found: " + request.getSubjectId()));
+                    .orElseThrow(() -> new NotFoundException(
+                            ErrorMessages.format(ErrorMessages.SUBJECT_NOT_FOUND_BY_ID, request.getSubjectId())));
             entity.setSubject(subject);
         }
         if (request.getUserId() != null) {
             Users user = userRepository.findById(request.getUserId())
-                    .orElseThrow(() -> new NotFoundException("User not found: " + request.getUserId()));
+                    .orElseThrow(() -> new NotFoundException(
+                            ErrorMessages.format(ErrorMessages.USER_NOT_FOUND_BY_ID, request.getUserId())));
+            if (user.isBanned()) {
+                throw new AccessDeniedException("Cont banat");
+            }
             entity.setUser(user);
         }
         Messages saved = messageRepository.save(entity);
@@ -79,14 +92,24 @@ public class MessageService {
             Messages toUpdate = messageMapper.toEntity(request);
             toUpdate.setMessageId(id);
             toUpdate.setMessageText(HtmlSanitizer.sanitize(toUpdate.getMessageText()));
+
+            if (toUpdate.getCreatedAt() == null || toUpdate.getCreatedAt().trim().isEmpty()) {
+                toUpdate.setCreatedAt(existing.getCreatedAt());
+            }
+
             if (request.getSubjectId() != null) {
                 Subjects subject = subjectRepository.findById(request.getSubjectId())
-                        .orElseThrow(() -> new NotFoundException("Subject not found: " + request.getSubjectId()));
+                        .orElseThrow(() -> new NotFoundException(
+                                ErrorMessages.format(ErrorMessages.SUBJECT_NOT_FOUND_BY_ID, request.getSubjectId())));
                 toUpdate.setSubject(subject);
             }
             if (request.getUserId() != null) {
                 Users user = userRepository.findById(request.getUserId())
-                        .orElseThrow(() -> new NotFoundException("User not found: " + request.getUserId()));
+                        .orElseThrow(() -> new NotFoundException(
+                                ErrorMessages.format(ErrorMessages.USER_NOT_FOUND_BY_ID, request.getUserId())));
+                if (user.isBanned()) {
+                    throw new AccessDeniedException("Cont banat");
+                }
                 toUpdate.setUser(user);
             }
             Messages saved = messageRepository.save(toUpdate);

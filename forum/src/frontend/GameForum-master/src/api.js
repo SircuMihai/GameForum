@@ -1,6 +1,6 @@
 // src/api.js
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5173"; 
-// ^ pune ce ai tu (ex: http://localhost:8080) dacă api e pe alt port
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
+// ^ pune ce ai tu dacă api e pe alt host/port
 
 function getToken() {
   return (

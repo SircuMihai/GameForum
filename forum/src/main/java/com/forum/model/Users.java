@@ -38,6 +38,9 @@ public class Users {
     @Column(name = "role", nullable = false)
     private String role;
 
+    @Column(name = "banned", nullable = false, columnDefinition = "boolean default false")
+    private boolean banned = false;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "selected_title_achievement_id", referencedColumnName = "achievement_id")
     private Achievements selectedTitleAchievement;

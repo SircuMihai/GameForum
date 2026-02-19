@@ -13,6 +13,7 @@ public class SubjectResponse {
     private String subjectText;
     private String subjectPhoto;
     private String subjectLikes;
+    private boolean subjectClosed;
     private String createdAt;
     private Integer categoryId;
     private Integer userId;

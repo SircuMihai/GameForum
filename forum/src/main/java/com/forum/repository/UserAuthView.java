@@ -5,4 +5,5 @@ public interface UserAuthView {
     String getUserEmail();
     String getPassword();
     String getRole();
+    boolean isBanned();
 }

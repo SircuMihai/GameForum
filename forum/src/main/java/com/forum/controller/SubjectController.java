@@ -37,14 +37,14 @@ public class SubjectController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @PreAuthorize("hasAnyRole('USER','ADMIN','MODERATOR')")
     public ResponseEntity<SubjectResponse> create(@RequestBody SubjectRequest request) {
         SubjectResponse created = subjectService.create(request);
         return ResponseEntity.created(URI.create("/api/subject/" + created.getSubjectId())).body(created);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','MODERATOR')")
     public ResponseEntity<SubjectResponse> update(@PathVariable Integer id, @RequestBody SubjectRequest request) {
         return subjectService.update(id, request)
                 .map(ResponseEntity::ok)
@@ -52,7 +52,7 @@ public class SubjectController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','MODERATOR')")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
         if (subjectService.findById(id).isEmpty()) return ResponseEntity.notFound().build();
         subjectService.delete(id);
@@ -60,9 +60,25 @@ public class SubjectController {
     }
 
     @PutMapping("/{id}/photo")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','MODERATOR')")
     public ResponseEntity<SubjectResponse> setPhoto(@PathVariable Integer id, @RequestBody SetSubjectPhotoRequest request) {
         return subjectService.updatePhoto(id, request)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/{id}/close")
+    @PreAuthorize("hasAnyRole('ADMIN','MODERATOR')")
+    public ResponseEntity<SubjectResponse> close(@PathVariable Integer id) {
+        return subjectService.setClosed(id, true)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/{id}/open")
+    @PreAuthorize("hasAnyRole('ADMIN','MODERATOR')")
+    public ResponseEntity<SubjectResponse> open(@PathVariable Integer id) {
+        return subjectService.setClosed(id, false)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }

@@ -11,9 +11,11 @@ import com.forum.repository.MessageRepository;
 import com.forum.repository.SubjectRepository;
 import com.forum.repository.UserRepository;
 import com.forum.exception.NotFoundException;
+import com.forum.exception.ErrorMessages;
 import com.forum.security.HtmlSanitizer;
 import com.forum.dto.request.SetSubjectPhotoRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -100,12 +102,17 @@ public class SubjectService {
         entity.setSubjectText(HtmlSanitizer.sanitize(entity.getSubjectText()));
         if (request.getUserId() != null) {
             Users user = userRepository.findById(request.getUserId())
-                    .orElseThrow(() -> new NotFoundException("User not found: " + request.getUserId()));
+                    .orElseThrow(() -> new NotFoundException(
+                            ErrorMessages.format(ErrorMessages.USER_NOT_FOUND_BY_ID, request.getUserId())));
+            if (user.isBanned()) {
+                throw new AccessDeniedException("Cont banat");
+            }
             entity.setUser(user);
         }
         if (request.getCategoryId() != null) {
             Categorys category = categoryRepository.findById(request.getCategoryId())
-                    .orElseThrow(() -> new NotFoundException("Category not found: " + request.getCategoryId()));
+                    .orElseThrow(() -> new NotFoundException(
+                            ErrorMessages.format(ErrorMessages.CATEGORY_NOT_FOUND_BY_ID, request.getCategoryId())));
             entity.setCategory(category);
         }
         Subjects saved = subjectRepository.save(entity);
@@ -126,12 +133,17 @@ public class SubjectService {
             toUpdate.setSubjectText(HtmlSanitizer.sanitize(toUpdate.getSubjectText()));
             if (request.getUserId() != null) {
                 Users user = userRepository.findById(request.getUserId())
-                        .orElseThrow(() -> new NotFoundException("User not found: " + request.getUserId()));
+                        .orElseThrow(() -> new NotFoundException(
+                                ErrorMessages.format(ErrorMessages.USER_NOT_FOUND_BY_ID, request.getUserId())));
+                if (user.isBanned()) {
+                    throw new AccessDeniedException("Cont banat");
+                }
                 toUpdate.setUser(user);
             }
             if (request.getCategoryId() != null) {
                 Categorys category = categoryRepository.findById(request.getCategoryId())
-                        .orElseThrow(() -> new NotFoundException("Category not found: " + request.getCategoryId()));
+                        .orElseThrow(() -> new NotFoundException(
+                                ErrorMessages.format(ErrorMessages.CATEGORY_NOT_FOUND_BY_ID, request.getCategoryId())));
                 toUpdate.setCategory(category);
             }
             Subjects saved = subjectRepository.save(toUpdate);
@@ -156,5 +168,15 @@ public class SubjectService {
     public void delete(Integer id) {
         messageRepository.deleteBySubject_SubjectId(id);
         subjectRepository.deleteById(id);
+    }
+
+    public Optional<SubjectResponse> setClosed(Integer id, boolean closed) {
+        return subjectRepository.findById(id).map(existing -> {
+            existing.setSubjectClosed(closed);
+            Subjects saved = subjectRepository.save(existing);
+            SubjectResponse resp = subjectMapper.toResponse(saved);
+            resp.setReplyCount(messageRepository.countBySubject_SubjectId(saved.getSubjectId()));
+            return resp;
+        });
     }
 }
