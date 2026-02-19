@@ -1,6 +1,5 @@
 import React, { useContext, useEffect, useMemo, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ForumLayout } from '../components/layout/ForumLayout'
 import { TopicCard } from '../components/topicList/TopicCard'
 import { apiRequest } from '../api'
 import { ArrowLeft, PlusCircle } from 'lucide-react'
@@ -28,13 +27,6 @@ export function TopicsList() {
   const [editPhoto, setEditPhoto] = useState(null)
   const [editSaving, setEditSaving] = useState(false)
 
-  const fileToDataUrl = (file) =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.onload = () => resolve(String(reader.result || ''))
-      reader.onerror = () => reject(new Error('Failed to read file'))
-      reader.readAsDataURL(file)
-    })
 
   const totalPages = useMemo(() => {
     return Math.max(1, Math.ceil(categoryTopics.length / pageSize))
@@ -207,7 +199,6 @@ export function TopicsList() {
   if (!category) return <div>Category not found</div>
 
   return (
-    <ForumLayout>
       <div className="max-w-5xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
@@ -295,6 +286,5 @@ export function TopicsList() {
           </div>
         )}
       </div>
-    </ForumLayout>
   )
 }

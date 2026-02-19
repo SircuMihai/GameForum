@@ -1,6 +1,5 @@
 import { useContext, useEffect, useMemo, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ForumLayout } from '../components/layout/ForumLayout'
 import { PostCard } from '../components/threadView/PostCard'
 import { apiRequest } from '../api'
 import { ArrowLeft } from 'lucide-react'
@@ -109,8 +108,7 @@ export function ThreadView() {
     try {
       window.__topicPhotoSrc = topicPhotoSrc
       window.__topicPhotoRaw = topic?.subjectPhoto ?? null
-    } catch {
-    }
+    } catch { /* empty */ }
   }, [topicPhotoSrc, topic?.subjectPhoto])
 
   const handleSendReply = async () => {
@@ -120,7 +118,6 @@ export function ThreadView() {
 
     try {
       setSending(true)
-      const now = new Date().toISOString()
       const created = await apiRequest('/api/message', {
         method: 'POST',
         body: JSON.stringify({
@@ -211,30 +208,24 @@ export function ThreadView() {
 
   if (subjectId == null) {
     return (
-      <ForumLayout>
-        <div className="max-w-5xl mx-auto">Topic not found</div>
-      </ForumLayout>
+
+<div className="max-w-5xl mx-auto">Topic not found</div>
     )
   }
 
   if (loading) {
     return (
-      <ForumLayout>
         <div className="max-w-5xl mx-auto">Loading...</div>
-      </ForumLayout>
     )
   }
 
   if (!topic) {
     return (
-      <ForumLayout>
         <div className="max-w-5xl mx-auto">Topic not found</div>
-      </ForumLayout>
     )
   }
 
   return (
-    <ForumLayout>
       <div className="max-w-5xl mx-auto">
         <div className="mb-6">
           <Link
@@ -271,7 +262,7 @@ export function ThreadView() {
                     src={topicPhotoSrc}
                     alt=""
                     id="topic-photo-img"
-                    className="w-full max-w-3xl max-h-[520px] object-contain rounded-sm border border-wood-600"
+                    className="w-full max-w-3xl max-h-130 object-contain rounded-sm border border-wood-600"
                   />
                 </div>
               ) : null}
@@ -316,6 +307,5 @@ export function ThreadView() {
           </div>
         </div>
       </div>
-    </ForumLayout>
-  )
+      )
 }

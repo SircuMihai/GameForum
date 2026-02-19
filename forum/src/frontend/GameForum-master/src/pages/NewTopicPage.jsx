@@ -1,6 +1,5 @@
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ForumLayout } from "../components/layout/ForumLayout";
 import { apiRequest } from "../api";
 import { ArrowLeft, Send, X } from "lucide-react";
 import { AuthContext } from "../auth/AuthContext";
@@ -45,7 +44,7 @@ export function NewTopicPage() {
   const [formData, setFormData] = useState({
     category: defaultCategoryId,
     title: "",
-    message: "", // aici păstrăm HTML-ul din Tiptap
+    message: "",
     subjectPhoto: null,
   });
 
@@ -69,7 +68,6 @@ export function NewTopicPage() {
       reader.readAsDataURL(file);
     });
 
-  // simplu: scoate tag-urile ca să validăm "text real"
   const plainText = (html) =>
     (html || "")
       .replace(/<[^>]*>/g, " ")
@@ -103,7 +101,7 @@ export function NewTopicPage() {
           method: "POST",
           body: JSON.stringify({
             subjectName: formData.title,
-            subjectText: formData.message, // HTML
+            subjectText: formData.message,
             subjectPhoto: formData.subjectPhoto,
             subjectLikes: "0",
             createdAt: now,
@@ -116,7 +114,7 @@ export function NewTopicPage() {
           token,
           method: "POST",
           body: JSON.stringify({
-            messageText: formData.message, // HTML
+            messageText: formData.message,
             messagesPhoto: null,
             messageLikes: "0",
             createdAt: now,
@@ -127,7 +125,6 @@ export function NewTopicPage() {
 
         navigate(`/category/${formData.category}`);
       } catch {
-        // optional: set error toast
       }
     }
   };
@@ -135,9 +132,9 @@ export function NewTopicPage() {
   const selectedCategory = categories.find((c) => c.id === formData.category);
 
   return (
-    <ForumLayout>
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
+
+<div className="max-w-4xl mx-auto">
+
         <div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -161,7 +158,6 @@ export function NewTopicPage() {
           </div>
         </div>
 
-        {/* Form Container */}
         <div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -171,7 +167,6 @@ export function NewTopicPage() {
           <div className="h-2 bg-linear-to-r from-wood-900 via-gold-600 to-wood-900" />
 
           <form onSubmit={handleSubmit} className="p-8 space-y-8">
-            {/* Category */}
             <div>
               <label className="block text-lg font-display font-bold text-parchment-200 mb-3">
                 Category
@@ -197,7 +192,6 @@ export function NewTopicPage() {
               )}
             </div>
 
-            {/* Subject photo */}
             <div>
               <label className="block text-lg font-display font-bold text-parchment-200 mb-3">
                 Topic Photo
@@ -216,7 +210,6 @@ export function NewTopicPage() {
               />
             </div>
 
-            {/* Title */}
             <div>
               <label className="block text-lg font-display font-bold text-parchment-200 mb-3">
                 Topic Title
@@ -247,7 +240,6 @@ export function NewTopicPage() {
               )}
             </div>
 
-            {/* Message */}
             <div>
               <label className="block text-lg font-display font-bold text-parchment-200 mb-3">
                 Message
@@ -259,13 +251,10 @@ export function NewTopicPage() {
                   setFormData((p) => ({ ...p, message: html }))
                 }
                 error={!!errors.message}
-                uploadImage={async (file) => {
-                  // TODO: aici chemi backend-ul tău și returnezi URL
-                  // exemplu: const res = await apiRequest("/api/upload/image", { token, method:"POST", body: formData })
-                  // return res.url
+                uploadImage={async () => {
                   return null;
                 }}
-                uploadFile={async (file) => {
+                uploadFile={async () => {
                   return null;
                 }}
               />
@@ -283,7 +272,6 @@ export function NewTopicPage() {
               </p>
             </div>
 
-            {/* Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-wood-700">
               <button
                 type="submit"
@@ -307,7 +295,6 @@ export function NewTopicPage() {
           <div className="h-2 bg-linear-to-r from-wood-900 via-gold-600 to-wood-900" />
         </div>
 
-        {/* Guidelines */}
         <div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -337,6 +324,5 @@ export function NewTopicPage() {
           </ul>
         </div>
       </div>
-    </ForumLayout>
   );
 }

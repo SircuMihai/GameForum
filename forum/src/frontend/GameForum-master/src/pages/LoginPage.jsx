@@ -3,8 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import AuthLayout from "../components/auth/AuthLayout";
 import AoeLogo from "../components/auth/AoELogo";
 import FrameCard from "../components/auth/FrameCard";
-import GoogleButton from "../components/auth/GoogleButton";
-import Divider from "../components/auth/Divider";
 import PasswordInput from "../components/auth/PasswordInput";
 import { AuthContext } from "../auth/AuthContext";
 
@@ -27,7 +25,7 @@ export default function LoginPage() {
       const resp = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include", 
+        credentials: "include",
         body: JSON.stringify({ userEmail: email, password }),
       });
 
@@ -52,15 +50,11 @@ export default function LoginPage() {
 
   return (
     <AuthLayout>
-      <AoeLogo />
+      <Link to="/">
+        <AoeLogo subtitle="Join the Conquest" />
+      </Link>
 
       <FrameCard title="Commander Login">
-        <div className="mb-6">
-          <GoogleButton text="Continue with Google" />
-        </div>
-
-        <Divider text="Or use your credentials" />
-
         {error && (
           <div className="mt-4 mb-2 rounded border border-red-700/40 bg-red-900/20 px-3 py-2 text-sm text-red-200">
             {error}
@@ -106,21 +100,16 @@ export default function LoginPage() {
             onChange={(e) => setPassword(e.target.value)}
           />
 
-          <div className="flex items-center justify-between text-sm">
+          <div className="flex items-center text-sm">
             <label className="flex items-center text-amber-200 cursor-pointer">
               <input
                 type="checkbox"
                 className="mr-2 rounded border-amber-700 bg-stone-800 accent-amber-600"
               />
-              <span className="text-xs uppercase tracking-wide">Remember me</span>
+              <span className="text-xs uppercase tracking-wide">
+                Remember me
+              </span>
             </label>
-
-            <Link
-              to="/forgot"
-              className="text-amber-400 hover:text-amber-300 transition-colors text-xs uppercase tracking-wide font-semibold"
-            >
-              Forgot password?
-            </Link>
           </div>
 
           <button
@@ -149,7 +138,7 @@ export default function LoginPage() {
       </FrameCard>
 
       <p className="text-center text-stone-500 text-xs mt-6 uppercase tracking-widest">
-        © Drepturi
+        © Drepturi de autor rezervate
       </p>
     </AuthLayout>
   );

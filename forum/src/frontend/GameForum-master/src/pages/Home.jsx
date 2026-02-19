@@ -1,6 +1,5 @@
 import { useContext, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { ForumLayout } from "../components/layout/ForumLayout";
 import { CategoryCard } from "../components/home/CategoryCard";
 import { apiRequest } from "../api";
 import { AnimatePresence } from "framer-motion";
@@ -238,7 +237,6 @@ export function Home() {
   };
 
   return (
-    <ForumLayout>
       <div className="space-y-8">
 
         <div className="text-center mb-12 relative">
@@ -519,7 +517,6 @@ export function Home() {
                         </div>
                       </div>
 
-                      {/* Background Picker */}
                       <div>
                         <label className="block text-sm font-display font-bold text-parchment-300 uppercase tracking-wider mb-3">
                           <span className="flex items-center gap-2">
@@ -554,7 +551,6 @@ export function Home() {
                         </div>
                       </div>
 
-                      {/* Preview */}
                       <div>
                         <label className="block text-sm font-display font-bold text-parchment-300 uppercase tracking-wider mb-3">
                           Preview
@@ -584,7 +580,6 @@ export function Home() {
                       </div>
                     </div>
 
-                    {/* Footer */}
                     <div className="px-6 py-4 border-t border-wood-700 flex flex-col sm:flex-row gap-3 bg-wood-800/50">
                       <button
                         onClick={handleSave}
@@ -610,6 +605,5 @@ export function Home() {
           document.body
         )}
       </div>
-    </ForumLayout>
   );
 }

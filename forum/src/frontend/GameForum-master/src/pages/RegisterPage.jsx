@@ -3,8 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import AuthLayout from "../components/auth/AuthLayout";
 import AoeLogo from "../components/auth/AoELogo";
 import FrameCard from "../components/auth/FrameCard";
-import GoogleButton from "../components/auth/GoogleButton";
-import Divider from "../components/auth/Divider";
 import PasswordInput from "../components/auth/PasswordInput";
 
 export default function RegisterPage() {
@@ -57,15 +55,11 @@ export default function RegisterPage() {
 
   return (
     <AuthLayout>
-      <AoeLogo subtitle="Join the Conquest" />
+      <Link to="/">
+        <AoeLogo subtitle="Join the Conquest" />
+      </Link>
 
       <FrameCard title="Create Your Empire">
-        <div className="mb-6">
-          <GoogleButton text="Sign up with Google" />
-        </div>
-
-        <Divider text="Or register manually" />
-
         {error && (
           <div className="mt-4 mb-2 rounded border border-red-700/40 bg-red-900/20 px-3 py-2 text-sm text-red-200">
             {error}
@@ -142,6 +136,7 @@ export default function RegisterPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
+
           <PasswordInput
             label="Confirm Password"
             value={confirmPassword}
@@ -193,7 +188,7 @@ export default function RegisterPage() {
       </FrameCard>
 
       <p className="text-center text-stone-500 text-xs mt-6 uppercase tracking-widest">
-        © Drepturi
+        © Drepturi de autor rezervate
       </p>
     </AuthLayout>
   );
